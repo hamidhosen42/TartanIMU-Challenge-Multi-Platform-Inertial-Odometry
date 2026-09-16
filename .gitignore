@@ -1,0 +1,18 @@
+# secrets
+token.txt
+token.text
+*.token
+
+# competition data (download via kaggle CLI, see README)
+data/
+
+# training artefacts
+runs/
+*.log
+nohup.out
+submission*.csv
+
+# python
+__pycache__/
+*.pyc
+.DS_Store

@@ -1,0 +1,40 @@
+# TartanIMU Challenge — Multi-Platform Inertial Odometry
+
+Predict the mean 3-D **body-frame velocity** of every 1 s window (200 Hz, 6-axis IMU) with **one model** shared
+across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, macro-averaged over platforms
+(lower is better; all-zero = 1.0). Competition: https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026
+
+## Layout
+
+| File | Purpose |
+| --- | --- |
+| `data/` | competition data (`kaggle competitions download -c tartan-imu-challenge-iros2026`) |
+| `common.py` | data loading, window index, val "solution" builder, official-metric wrapper |
+| `kaggle_metric.py` | the organisers' exact leaderboard scorer (from the TartanIMU starter kit) |
+| `analysis.py` → `analysis/` | EDA: inventory, target/IMU statistics, temporal autocorrelation, test composition, figures, `summary.md` |
+| `model.py` | `IMUNet` (conv stem → dilated TCN → transformer context → dense 20 Hz velocity) + sliding-chunk trajectory inference |
+| `train.py` | platform-balanced chunk training with physical augmentation, EMA weights, official-metric validation |
+| `predict.py` | checkpoint (ensemble) → `submission.csv`, optional val self-scoring |
+
+## Approach
+
+1. **Context, not isolated windows.** Test trajectories are given whole and windows are contiguous, so the model
+   reads 16 s chunks (past *and* future) and predicts every window in the chunk; at inference chunks slide with
+   overlap and are Hann-weighted-averaged. (Velocity lag-1 autocorrelation is 0.85 car / 0.78 dog / 0.56 human.)
+2. **Unified network, implicit embodiment.** No platform input; an auxiliary platform-classification head makes the
+   shared features embodiment-aware (the vibration/gravity signature identifies the platform with ~100 % accuracy).
+3. **Metric-aware training.** Platform-balanced sampling (macro-average), vector-Huber window loss, dense 20 Hz
+   loss, and an *integrated-error* ("drift") loss that mirrors ATE20's sensitivity to correlated bias.
+4. **Physically consistent augmentation**: small random sensor-mount rotations applied to IMU *and* target
+   velocity, accel/gyro bias, scale and white noise.
+
+## Run
+
+```bash
+python analysis.py                                   # EDA → analysis/summary.md + figures
+python train.py --name v1                            # train on train, validate on val → runs/v1/best.pt
+python predict.py --ckpt runs/v1/best.pt --val       # val score + submission.csv
+kaggle competitions submit -c tartan-imu-challenge-iros2026 -f submission.csv -m "v1"
+python train.py --name full --splits train,val       # final fit on train+val (fixed schedule) → runs/full/last.pt
+```
+# TartanIMU-Challenge-Multi-Platform-Inertial-Odometry
