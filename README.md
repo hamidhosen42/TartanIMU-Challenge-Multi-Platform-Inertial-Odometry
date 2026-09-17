@@ -15,6 +15,7 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | `model.py` | `IMUNet` (conv stem → dilated TCN → transformer context → dense 20 Hz velocity) + sliding-chunk trajectory inference |
 | `train.py` | platform-balanced chunk training with physical augmentation, EMA weights, official-metric validation |
 | `predict.py` | checkpoint (ensemble) → `submission.csv`, optional val self-scoring |
+| `notebooks/tartanimu_v1_submission.ipynb` | **self-contained notebook** (Kaggle/local) reproducing v1 → `submission_v1.csv` |
 
 ## Approach
 
@@ -27,6 +28,16 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
    loss, and an *integrated-error* ("drift") loss that mirrors ATE20's sensitivity to correlated bias.
 4. **Physically consistent augmentation**: small random sensor-mount rotations applied to IMU *and* target
    velocity, accel/gyro bias, scale and white noise.
+
+## Results (public leaderboard)
+
+| Submission | Val (official metric) | Public LB |
+| --- | --- | --- |
+| all-zero reference | 1.015 | 1.054 |
+| v1 — 16 s context, width 128, train only | 0.2247 | 0.378 |
+| full — v1 recipe on train+val | — | 0.3625 |
+| ens3 — v1 + v2 (32 s, width 160) + full | 0.2171 (v1+v2) | 0.3592 |
+| ens4 — ens3 + full2 (v2 recipe on train+val) | — | **0.3544** |
 
 ## Run
 
