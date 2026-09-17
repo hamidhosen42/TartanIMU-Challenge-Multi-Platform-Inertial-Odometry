@@ -15,6 +15,8 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | `model.py` | `IMUNet` (conv stem → dilated TCN → transformer context → dense 20 Hz velocity) + sliding-chunk trajectory inference |
 | `train.py` | platform-balanced chunk training with physical augmentation, EMA weights, official-metric validation |
 | `predict.py` | checkpoint (ensemble) → `submission.csv`, optional val self-scoring |
+| `checkpoints/full_long_swa.pt`, `configs/full_long.json` | ranked checkpoint (SHA-256 in `REPORT.md`) and its exact config |
+| `REPORT.md`, `requirements.txt` | organisers' team report + environment |
 | `notebooks/tartanimu_v1_submission.ipynb` | **self-contained notebook** (Kaggle/local) reproducing v1 → `submission_v1.csv` |
 
 ## Approach
@@ -37,7 +39,8 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | v1 — 16 s context, width 128, train only | 0.2247 | 0.378 |
 | full — v1 recipe on train+val | — | 0.3625 |
 | ens3 — v1 + v2 (32 s, width 160) + full | 0.2171 (v1+v2) | 0.3592 |
-| ens4 — ens3 + full2 (v2 recipe on train+val) | — | **0.3544** |
+| ens4 — ens3 + full2 (v2 recipe on train+val) | — | 0.3544 |
+| **full_long — v1 recipe on train+val, 60 epochs, EMA+SWA (single model, ranked)** | — | **0.3466** |
 
 ## Run
 
@@ -46,6 +49,7 @@ python analysis.py                                   # EDA → analysis/summary.
 python train.py --name v1                            # train on train, validate on val → runs/v1/best.pt
 python predict.py --ckpt runs/v1/best.pt --val       # val score + submission.csv
 kaggle competitions submit -c tartan-imu-challenge-iros2026 -f submission.csv -m "v1"
-python train.py --name full --splits train,val       # final fit on train+val (fixed schedule) → runs/full/last.pt
+python train.py --name full_long --splits train,val --epochs 60 --steps 250 --swa-from 50   # ranked model → runs/full_long/swa.pt
+python predict.py --ckpt checkpoints/full_long_swa.pt --out submission.csv                  # reproduce the ranked submission
 ```
 # TartanIMU-Challenge-Multi-Platform-Inertial-Odometry

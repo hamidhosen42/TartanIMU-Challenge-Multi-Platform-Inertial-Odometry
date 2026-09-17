@@ -7,22 +7,22 @@
 | Team name (exactly as on the leaderboard) | _TODO: fill in from the leaderboard_ |
 | Members (name — affiliation) | Md. Hamid Hosen — _TODO: affiliation_ |
 | Contact email | hamidhosen8444@gmail.com |
-| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | _TODO after final run: `submission_full_long.csv`, submission ID_ |
-| Public score of that submission | _TODO_ |
+| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | Kaggle submission ID **56313744** — `submission_full_long.csv`, 2026-09-17 21:12 UTC |
+| Public score of that submission | 0.34661 |
 | Score you expect us to reproduce | same ± 0.005 (single seed, EMA+SWA weights; MPS vs CUDA numerics differ slightly) |
 | Code repository or archive (a private link is fine) | https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry |
-| Commit SHA that produced the checkpoint | _TODO_ |
-| Checkpoint file name(s) | `runs/full_long/swa.pt` |
-| Checkpoint SHA-256 | _TODO: `shasum -a 256 runs/full_long/swa.pt`_ |
-| Config file path inside the repository | `runs/full_long/config.json` (the exact argparse namespace; also stored inside the checkpoint under `args`) |
-| Total training cost (GPU type × hours) | Apple M5 (MPS, 10-core) × ≈3 h for the ranked run; ≈10 h total across all experiments |
+| Commit SHA that produced the checkpoint | `6bea7bb50113db6c04b0d616d42fa90fba27f72b` (training code; the checkpoint itself is committed in the following commit) |
+| Checkpoint file name(s) | `checkpoints/full_long_swa.pt` (in the repository) |
+| Checkpoint SHA-256 | `0131e2ebe662fb78f269875c07eafececec2966bc0b6e542ce96b1d2f56fe352` |
+| Config file path inside the repository | `configs/full_long.json` (the exact argparse namespace; also stored inside the checkpoint under `args`). Reproduce with `python train.py --name full_long --splits train,val --epochs 60 --steps 250 --swa-from 50` |
+| Total training cost (GPU type × hours) | Apple M5 laptop GPU (MPS) × 1.9 h for the ranked run; ≈10 h total across all experiments |
 
 ## Artifact checklist
 
-- [x] **Final checkpoint(s)** — `runs/full_long/swa.pt`
+- [x] **Final checkpoint(s)** — `checkpoints/full_long_swa.pt`
 - [x] **Training code** — `train.py`, `model.py`, `common.py` at the commit above
-- [x] **The exact config / hyper-parameter file** — `runs/full_long/config.json`
-- [x] **Inference script** — `predict.py` (`python predict.py --ckpt runs/full_long/swa.pt --out submission.csv`)
+- [x] **The exact config / hyper-parameter file** — `configs/full_long.json`
+- [x] **Inference script** — `predict.py` (`python predict.py --ckpt checkpoints/full_long_swa.pt --out submission.csv`)
 - [x] **Environment** — `requirements.txt` (Python 3.12.11)
 - [x] **This report.**
 
@@ -32,7 +32,7 @@
 
 | Question | Yes / No | If yes, describe |
 | --- | --- | --- |
-| Weight averaging across checkpoints (soup, EMA, SWA)? | Yes | EMA of the weights during training (decay 0.998), then a uniform average of the EMA weights at the end of each of the last 11 epochs (epochs 50–60) of the *same* run. One weight set results. |
+| Weight averaging across checkpoints (soup, EMA, SWA)? | Yes | EMA of the weights during training (decay 0.998), then a uniform average of the EMA weights at the end of each of the last 11 epochs (epochs 50–60) of the *same* run (`swa_n = 11` stored in the checkpoint). One weight set results. |
 | Test-time augmentation, output scaling, or calibration? | No | Only overlap averaging of sliding 16 s chunks (stride 2 windows, Hann weights) over each test trajectory — the same procedure is used for validation. No scaling, clipping or calibration. |
 | Any per-platform behavior — and is it internal routing or separate models? | No | No platform input, no routing. An auxiliary 4-way platform classification head is trained (loss weight 0.05) and its output is discarded at inference. |
 | Pretrained weights not included in the release? | No | Trained from scratch. |
@@ -69,11 +69,11 @@ Weights were set once by hand (not tuned or scheduled).
 
 ## 4. Training schedule
 
-AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **60 epochs** (v1 model-selection runs: 30 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 50–60. Apple M5 laptop (MPS backend, FP32), ≈0.6 s/step → ≈2.5–3 h for the ranked run.
+AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **60 epochs** (v1 model-selection runs: 30 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 50–60. Apple M5 laptop (MPS backend, FP32), ≈0.45 s/step → 116 min wall-clock for the ranked run.
 
 ## 5. Model selection — how did you choose which checkpoint to submit?
 
-Design decisions were made on `val` with the organisers' exact scorer (`kaggle_metric.py`), never on the leaderboard: v1 (16 s context, width 128) reached val 0.2247 and v2 (32 s context, width 160, drone-heavier sampling) 0.2293, so the v1 recipe was kept. The ranked checkpoint is the final EMA+SWA weights of one fixed-length train+val run — no early stopping and no checkpoint picking are possible on it, since `val` is inside its training set. In total we uploaded 6 submissions to Kaggle (1 earlier baseline, v1, full, two prediction-ensembles, and the ranked single model); the two ensembles scored best publicly (0.354) but are excluded from ranking by the single-model rule. Public LB tracked val ordering (v1 0.378 → full 0.363) but with a large offset (val 0.225 ↔ LB 0.378), consistent with the organisers' note that the public split is harder than private (baseline 0.637 public / 0.456 private).
+Design decisions were made on `val` with the organisers' exact scorer (`kaggle_metric.py`), never on the leaderboard: v1 (16 s context, width 128) reached val 0.2247 and v2 (32 s context, width 160, drone-heavier sampling) 0.2293, so the v1 recipe was kept. The ranked checkpoint is the final EMA+SWA weights of one fixed-length train+val run — no early stopping and no checkpoint picking are possible on it, since `val` is inside its training set. In total we uploaded 6 submissions to Kaggle (1 earlier baseline, v1, full, two prediction-ensembles, and the ranked single model). Public scores: v1 0.378 → full (train+val, 30 ep) 0.363 → ensembles 0.359 / 0.354 → ranked single model (train+val, 60 ep, SWA) **0.347**. Public LB tracked val ordering but with a large offset (val 0.225 ↔ LB 0.378), consistent with the organisers' note that the public split is harder than private (baseline 0.637 public / 0.456 private).
 
 ## 6. Inference-time processing
 
@@ -91,7 +91,7 @@ Design decisions were made on `val` with the organisers' exact scorer (`kaggle_m
 - Tried rotation test-time augmentation (±5° and ±10° about each body axis, outputs rotated back, 7 passes) → val 0.2246 / 0.2248 vs 0.2247 without → no gain, dropped; cost ½ h.
 - Tried a larger context/width (32 s chunks, width 160, drone sampling weight 0.34) → val 0.2293 vs 0.2247 (worse; drone AVE did not improve despite more drone samples) → kept the small model; cost 3 h GPU.
 - Per-trajectory platform classification from hand-crafted IMU statistics reaches 100 % on val — but the rules forbid routing, so it was used only as analysis (test composition ≈ 18 car / 15 dog / 46 drone / 10 human trajectories).
-- Prediction-averaging of 2–4 runs improved val 0.2247 → 0.2171 and public 0.363 → 0.354, but is not a single weight set, so it is not the ranked submission.
+- Prediction-averaging of 2–4 runs improved val 0.2247 → 0.2171 and public 0.363 → 0.354, but is not a single weight set, so it is not the ranked submission; a single 60-epoch run with SWA (0.347) ended up beating it anyway.
 - Drone remains the dominant error (AVE ≈ 0.39 m/s, ≈35 % of the total score); neither more drone samples nor more capacity helped within our budget.
 
 ## 9. ★ If you had to name one component that mattered most, what would it be?

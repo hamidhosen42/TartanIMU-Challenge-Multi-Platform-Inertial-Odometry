@@ -16,3 +16,6 @@ submission*.csv
 __pycache__/
 *.pyc
 .DS_Store
+
+# ranked checkpoint is committed on purpose
+!checkpoints/
