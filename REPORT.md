@@ -1,0 +1,105 @@
+# TartanIMU Challenge — Team Report
+
+## Submission identification
+
+| Field | Your answer |
+| --- | --- |
+| Team name (exactly as on the leaderboard) | _TODO: fill in from the leaderboard_ |
+| Members (name — affiliation) | Md. Hamid Hosen — _TODO: affiliation_ |
+| Contact email | hamidhosen8444@gmail.com |
+| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | _TODO after final run: `submission_full_long.csv`, submission ID_ |
+| Public score of that submission | _TODO_ |
+| Score you expect us to reproduce | same ± 0.005 (single seed, EMA+SWA weights; MPS vs CUDA numerics differ slightly) |
+| Code repository or archive (a private link is fine) | https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry |
+| Commit SHA that produced the checkpoint | _TODO_ |
+| Checkpoint file name(s) | `runs/full_long/swa.pt` |
+| Checkpoint SHA-256 | _TODO: `shasum -a 256 runs/full_long/swa.pt`_ |
+| Config file path inside the repository | `runs/full_long/config.json` (the exact argparse namespace; also stored inside the checkpoint under `args`) |
+| Total training cost (GPU type × hours) | Apple M5 (MPS, 10-core) × ≈3 h for the ranked run; ≈10 h total across all experiments |
+
+## Artifact checklist
+
+- [x] **Final checkpoint(s)** — `runs/full_long/swa.pt`
+- [x] **Training code** — `train.py`, `model.py`, `common.py` at the commit above
+- [x] **The exact config / hyper-parameter file** — `runs/full_long/config.json`
+- [x] **Inference script** — `predict.py` (`python predict.py --ckpt runs/full_long/swa.pt --out submission.csv`)
+- [x] **Environment** — `requirements.txt` (Python 3.12.11)
+- [x] **This report.**
+
+## Compliance statement
+
+- [x] All ranked predictions come from a single model with one shared set of weights.
+
+| Question | Yes / No | If yes, describe |
+| --- | --- | --- |
+| Weight averaging across checkpoints (soup, EMA, SWA)? | Yes | EMA of the weights during training (decay 0.998), then a uniform average of the EMA weights at the end of each of the last 11 epochs (epochs 50–60) of the *same* run. One weight set results. |
+| Test-time augmentation, output scaling, or calibration? | No | Only overlap averaging of sliding 16 s chunks (stride 2 windows, Hann weights) over each test trajectory — the same procedure is used for validation. No scaling, clipping or calibration. |
+| Any per-platform behavior — and is it internal routing or separate models? | No | No platform input, no routing. An auxiliary 4-way platform classification head is trained (loss weight 0.05) and its output is discarded at inference. |
+| Pretrained weights not included in the release? | No | Trained from scratch. |
+| External data (public or private) beyond the challenge dataset? | No | |
+| Anything else that changes the numbers and is not in the training code? | No | Earlier leaderboard entries (`submission_ens3/ens4.csv`) were prediction averages of several runs and are **not** the submission we ask to rank. |
+
+Signed (name, date): Md. Hamid Hosen, 2026-09-_TODO_
+
+---
+
+## Technical report
+
+## 1. Backbone
+
+A context model over whole trajectories: raw 200 Hz IMU (6 channels, fixed scaling, gravity retained) → strided conv stem (200 → 20 Hz tokens) → 8 residual depthwise-dilated temporal-convolution blocks (dilations 1,2,4,8,16,32,1,2; ≈13 s receptive field) → 2-layer transformer encoder (4 heads, learned positions) over the whole 16 s chunk → per-token linear head giving dense 20 Hz body-frame velocity, averaged to one vector per 1 s window. 1.78 M parameters. Relative to the released ResNet-LSTM baseline the differences are (i) the model reads past *and future* context across many windows of the same trajectory instead of one isolated 1 s window, and (ii) it has no platform input or per-platform heads — embodiment is inferred implicitly (an auxiliary classification head is used only as a training signal).
+
+## 2. Loss
+
+`L = L_win + 0.5·L_dense + 0.2·L_drift + 0.05·L_plat`
+
+- `L_win`: vector Huber (β = 0.25 m/s) on the per-window mean velocity (masked for padded windows) — the AVE term.
+- `L_dense`: the same Huber on the 20 Hz dense output against 20 Hz-averaged ground-truth `vel_body`.
+- `L_drift`: mean over t of ‖Σ_{k≤t}(v̂_k − v_k)‖ / √t within the chunk — an integrated body-frame error that mirrors ATE20's sensitivity to correlated bias.
+- `L_plat`: cross-entropy of the auxiliary platform head.
+Weights were set once by hand (not tuned or scheduled).
+
+## 3. Data handling
+
+- Windows are used as given (k·200 … (k+1)·200); trajectories are kept whole in memory and training samples are random 16-window (3 200-sample) chunks. Trajectories shorter than 16 windows are edge-padded and masked.
+- **Platform-balanced sampling**: each chunk picks a platform uniformly (the metric is macro-averaged), then a trajectory with probability ∝ length.
+- Augmentation (all on device, per chunk): random sensor-mount rotation — uniform axis, angle U(0°, 15°) — applied identically to accelerometer, gyroscope **and** the target velocity; accelerometer scale 1 + N(0, 0.02) and bias N(0, 0.15 m/s²); gyroscope scale 1 + N(0, 0.02) and bias N(0, 0.02 rad/s); white noise σ = 0.05 m/s² / 0.004 rad/s.
+- Input normalisation: fixed division by (3, 3, 3, 0.4, 0.4, 0.4); no mean subtraction (keeps the rotation augmentation exact and gravity available as a tilt cue).
+- Split: the ranked checkpoint is trained on **train + val** (the released splits, concatenated) with a fixed schedule; model design and all hyper-parameters were chosen on runs trained on `train` only and scored on `val` with the organisers' scorer.
+
+## 4. Training schedule
+
+AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **60 epochs** (v1 model-selection runs: 30 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 50–60. Apple M5 laptop (MPS backend, FP32), ≈0.6 s/step → ≈2.5–3 h for the ranked run.
+
+## 5. Model selection — how did you choose which checkpoint to submit?
+
+Design decisions were made on `val` with the organisers' exact scorer (`kaggle_metric.py`), never on the leaderboard: v1 (16 s context, width 128) reached val 0.2247 and v2 (32 s context, width 160, drone-heavier sampling) 0.2293, so the v1 recipe was kept. The ranked checkpoint is the final EMA+SWA weights of one fixed-length train+val run — no early stopping and no checkpoint picking are possible on it, since `val` is inside its training set. In total we uploaded 6 submissions to Kaggle (1 earlier baseline, v1, full, two prediction-ensembles, and the ranked single model); the two ensembles scored best publicly (0.354) but are excluded from ranking by the single-model rule. Public LB tracked val ordering (v1 0.378 → full 0.363) but with a large offset (val 0.225 ↔ LB 0.378), consistent with the organisers' note that the public split is harder than private (baseline 0.637 public / 0.456 private).
+
+## 6. Inference-time processing
+
+`predict.py`: for each test trajectory, 16-window chunks are slid with a stride of 2 windows; every chunk is run through the network once (no TTA); per-window outputs are averaged across overlapping chunks with a raised-cosine weight (+0.05 floor) so each window is trusted most from the chunk in which it is central. Trajectories shorter than 16 windows are edge-padded and the padding discarded. No scaling, clipping, smoothing or per-platform constants. Test trajectories are processed independently (never concatenated).
+
+## 7. External resources
+
+- Organisers' starter kit: `kaggle_metric_tartanimu_score.py` (used verbatim for local validation) and data conventions.
+- PyTorch, NumPy, pandas, SciPy, scikit-learn. No pretrained weights, no external data.
+- The publicly shared inference notebook of the 0.429 entry (leaonwang, "TartanIMU V25b") was read for its description of the context-chunk / overlap-averaging idea; no code or weights from it were used.
+
+## 8. ★ What did NOT work
+
+- Tried a bidirectional GRU as the context module → ≈1 s/step on Apple MPS (3× slower than a 2-layer transformer, same accuracy in a short comparison) → replaced; cost ½ h.
+- Tried rotation test-time augmentation (±5° and ±10° about each body axis, outputs rotated back, 7 passes) → val 0.2246 / 0.2248 vs 0.2247 without → no gain, dropped; cost ½ h.
+- Tried a larger context/width (32 s chunks, width 160, drone sampling weight 0.34) → val 0.2293 vs 0.2247 (worse; drone AVE did not improve despite more drone samples) → kept the small model; cost 3 h GPU.
+- Per-trajectory platform classification from hand-crafted IMU statistics reaches 100 % on val — but the rules forbid routing, so it was used only as analysis (test composition ≈ 18 car / 15 dog / 46 drone / 10 human trajectories).
+- Prediction-averaging of 2–4 runs improved val 0.2247 → 0.2171 and public 0.363 → 0.354, but is not a single weight set, so it is not the ranked submission.
+- Drone remains the dominant error (AVE ≈ 0.39 m/s, ≈35 % of the total score); neither more drone samples nor more capacity helped within our budget.
+
+## 9. ★ If you had to name one component that mattered most, what would it be?
+
+Reading the trajectory as a sequence — predicting all windows of a 16 s chunk jointly with bidirectional context and overlap-averaging at inference. The target is strongly autocorrelated (lag-1 velocity autocorrelation 0.85 car / 0.78 dog / 0.56 human) and an oracle that merely averages the two neighbouring windows' true velocities already halves the all-zero error; the same architecture applied to isolated 1 s windows cannot estimate gyro/accelerometer bias, low-frequency tilt or the embodiment reliably. Everything else (drift loss, rotation augmentation, EMA/SWA) gave increments of a few hundredths at most.
+
+## 10. Anything else we should know
+
+- All training was done on a laptop (Apple M5, MPS); CUDA numerics will differ at the 3rd–4th decimal.
+- Known failure mode: fast drone flight (mean speed > 3 m/s) — errors there dominate the score.
+- The val→public gap (0.225 → 0.36–0.38) was much larger than any val-measured improvement; a per-trajectory breakdown of the public split would have helped teams understand what generalises.

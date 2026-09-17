@@ -32,6 +32,7 @@ p.add_argument("--width", type=int, default=128)
 p.add_argument("--seed", type=int, default=0)
 p.add_argument("--eval-every", type=int, default=2)
 p.add_argument("--rot-deg", type=float, default=15.0, help="max sensor-mount rotation augmentation")
+p.add_argument("--swa-from", type=int, default=0, help="if >0, average EMA weights over epochs >= this into runs/<name>/swa.pt")
 p.add_argument("--plat-probs", default="0.25,0.25,0.25,0.25", help="sampling probability per platform (car,dog,drone,human)")
 args = p.parse_args()
 
@@ -137,6 +138,7 @@ total_steps = args.epochs * args.steps
 sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=args.lr, total_steps=total_steps, pct_start=0.08, div_factor=20, final_div_factor=200)
 ema_decay = 0.998
 log, best = [], float("inf")
+swa_state, swa_n = None, 0
 t0 = time.time()
 for ep in range(1, args.epochs + 1):
     model.train(); tot = {"win": 0., "dense": 0., "drift": 0., "plat": 0.}
@@ -170,6 +172,11 @@ for ep in range(1, args.epochs + 1):
         if s < best:
             best = s; torch.save({"model": ema.state_dict(), "args": vars(args), "val_score": s, "epoch": ep}, run / "best.pt")
     torch.save({"model": ema.state_dict(), "args": vars(args), "epoch": ep}, run / "last.pt")
+    if args.swa_from and ep >= args.swa_from:                                  # running uniform average of EMA weights
+        sd = {k: v.detach().clone().float() for k, v in ema.state_dict().items()}
+        swa_state = sd if swa_state is None else {k: swa_state[k] + (sd[k] - swa_state[k]) / (swa_n + 1) for k in sd}
+        swa_n += 1
+        torch.save({"model": swa_state, "args": vars(args), "epoch": ep, "swa_n": swa_n}, run / "swa.pt")
     log.append(rec); pd.DataFrame(log).to_csv(run / "log.csv", index=False)
     print(json.dumps(rec))
 print("best val score", best)
