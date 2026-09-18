@@ -28,7 +28,7 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cuda" if 
 models = []
 for c in args.ckpt:
     ck = torch.load(c, map_location="cpu")
-    m = IMUNet(width=ck["args"].get("width", 128)).to(device).eval()
+    m = IMUNet(width=ck["args"].get("width", 128), ctx_layers=ck["args"].get("ctx_layers", 2), physics=bool(ck["args"].get("physics", 0)), lag=bool(ck["args"].get("lag", 0))).to(device).eval()
     m.load_state_dict(ck["model"]); models.append((m, ck["args"].get("chunk", 16)))
     print(f"loaded {c}: epoch {ck.get('epoch')}, val_score {ck.get('val_score', 'n/a')}")
 

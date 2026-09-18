@@ -34,10 +34,57 @@ class TCNBlock(nn.Module):
         return x + self.pw(self.dw(self.norm(x)))
 
 
+def _exp_so3(w):
+    """Batched Rodrigues: rotation vectors (..., 3) -> matrices (..., 3, 3)."""
+    th = w.norm(dim=-1, keepdim=True).clamp(min=1e-8)
+    k = w / th
+    K = torch.zeros(*w.shape[:-1], 3, 3, device=w.device, dtype=w.dtype)
+    K[..., 0, 1], K[..., 0, 2], K[..., 1, 0] = -k[..., 2], k[..., 1], k[..., 2]
+    K[..., 1, 2], K[..., 2, 0], K[..., 2, 1] = -k[..., 0], -k[..., 1], k[..., 0]
+    I = torch.eye(3, device=w.device, dtype=w.dtype).expand_as(K)
+    st, ct = th.sin()[..., None], th.cos()[..., None]
+    return I + st * K + (1 - ct) * (K @ K)
+
+
+@torch.no_grad()
+def physics_features(x, dt_tok: float = TOK / WIN / TOK * 10):
+    """Deterministic strap-down features at token rate from a raw chunk x (B, 6, L).
+
+    Gyro is integrated (parallel prefix product of per-token rotations) to get R_t: body(t) -> body(chunk start).
+    Accelerometer is rotated into that common frame, its chunk mean is taken as the gravity estimate, and the
+    de-gravitated acceleration is integrated to a relative velocity.  Everything is then expressed back in the
+    *current* body frame, so all outputs are ordinary body-frame vectors (rotation-equivariant like the target):
+      a_dyn (3): accelerometer minus estimated gravity,   g_b (3): estimated gravity direction in body frame,
+      dv (3):    velocity change since chunk start.       Returns (B, 9, N) with N = L/10 tokens.
+    """
+    B, _, L = x.shape
+    N = L // 10
+    xb = x.float().view(B, 6, N, 10).mean(-1)                       # 20 Hz
+    acc, gyr = xb[:, :3].transpose(1, 2), xb[:, 3:].transpose(1, 2)  # (B, N, 3)
+    dt = 10.0 / 200.0
+    E = _exp_so3(gyr * dt)                                          # per-token increments
+    P = E.clone(); d = 1                                            # Hillis-Steele scan: P[t] = E_1 ... E_t
+    while d < N:
+        P = torch.cat([P[:, :d], P[:, :-d] @ P[:, d:]], dim=1); d *= 2
+    R = P                                                           # (B, N, 3, 3): body(t) -> body(0)
+    a0 = (R @ acc[..., None])[..., 0]                               # accel in start frame
+    g0 = a0.mean(1, keepdim=True)                                   # gravity estimate (start frame)
+    v0 = torch.cumsum(a0 - g0, dim=1) * dt                          # relative velocity (start frame)
+    Rt = R.transpose(-1, -2)
+    dv = (Rt @ v0[..., None])[..., 0]
+    gb = (Rt @ g0.expand_as(a0)[..., None])[..., 0]
+    a_dyn = acc - gb
+    return torch.cat([a_dyn / 3.0, gb / 9.81, dv / 3.0], dim=-1).transpose(1, 2)  # (B, 9, N)
+
+
 class IMUNet(nn.Module):
-    def __init__(self, width: int = 128, blocks: int = 8, ctx_layers: int = 2, drop: float = 0.1, max_tok: int = 4096):
+    def __init__(self, width: int = 128, blocks: int = 8, ctx_layers: int = 2, drop: float = 0.1, max_tok: int = 4096,
+                 physics: bool = False, lag: bool = False):
         super().__init__()
+        self.physics, self.lag = physics, lag
         self.register_buffer("in_scale", IN_SCALE.clone())
+        if physics:
+            self.phys_proj = nn.Sequential(nn.Conv1d(18, width, 1), nn.GELU(), nn.Conv1d(width, width, 1))
         self.stem = nn.Sequential(
             nn.Conv1d(6, width // 2, 9, stride=2, padding=4, bias=False), nn.GroupNorm(8, width // 2), nn.GELU(),
             nn.Conv1d(width // 2, width, 11, stride=5, padding=5, bias=False), nn.GroupNorm(8, width), nn.GELU())
@@ -49,14 +96,39 @@ class IMUNet(nn.Module):
         self.head = nn.Sequential(nn.LayerNorm(width), nn.Linear(width, 128), nn.GELU(), nn.Linear(128, 3))
         self.attn = nn.Linear(width, 1)
         self.plat = nn.Sequential(nn.LayerNorm(2 * width), nn.Linear(2 * width, 64), nn.GELU(), nn.Linear(64, 4))
+        if lag:   # per-chunk IMU-vs-ground-truth time offset (in 50 ms tokens); some recordings are offset by up to 70 ms
+            self.lag_head = nn.Sequential(nn.LayerNorm(2 * width), nn.Linear(2 * width, 64), nn.GELU(), nn.Linear(64, 1))
+            nn.init.zeros_(self.lag_head[-1].weight); nn.init.zeros_(self.lag_head[-1].bias)
 
-    def forward(self, x):                         # x: (B, 6, L) raw IMU
-        h = self.tcn(self.stem(x / self.in_scale))  # (B, W, L/10)
+    @staticmethod
+    def shift_dense(dense, delta):
+        """Fractional time shift of a (B, N, 3) sequence: out[t] = dense[t + delta], delta (B,) in tokens, edge-clamped."""
+        B, N, _ = dense.shape
+        pos = torch.arange(N, device=dense.device, dtype=dense.dtype)[None] + delta[:, None]      # (B, N)
+        pos = pos.clamp(0, N - 1)
+        i0 = pos.floor().long(); i1 = (i0 + 1).clamp(max=N - 1); w = (pos - i0.to(dense.dtype))[..., None]
+        g0 = torch.gather(dense, 1, i0[..., None].expand(B, N, 3)); g1 = torch.gather(dense, 1, i1[..., None].expand(B, N, 3))
+        return g0 * (1 - w) + g1 * w
+
+    def forward(self, x, return_lag: bool = False):                         # x: (B, 6, L) raw IMU
+        h = self.stem(x / self.in_scale)            # (B, W, L/10)
+        if self.physics:
+            # two hypotheses for the gyro-z sign (one drone source has it inverted); the network learns which to trust
+            xz = torch.cat([x[:, :5], -x[:, 5:6]], dim=1)
+            h = h + self.phys_proj(torch.cat([physics_features(x), physics_features(xz)], dim=1))
+        h = self.tcn(h)
         h = h.transpose(1, 2)                       # (B, N, W)
         h = self.ctx(h + self.pos[:, : h.shape[1]])
         dense = self.head(h)                        # (B, N, 3)  20 Hz velocity
         a = torch.softmax(self.attn(h), dim=1)
-        plat = self.plat(torch.cat([(h * a).sum(1), h.mean(1)], dim=-1))
+        desc = torch.cat([(h * a).sum(1), h.mean(1)], dim=-1)
+        plat = self.plat(desc)
+        delta = None
+        if self.lag:
+            delta = 2.0 * torch.tanh(self.lag_head(desc)[:, 0])                # +-2 tokens = +-100 ms
+            dense = self.shift_dense(dense, delta)
+        if return_lag:
+            return dense, plat, delta
         return dense, plat
 
     @staticmethod

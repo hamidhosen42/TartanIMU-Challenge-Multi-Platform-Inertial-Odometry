@@ -29,9 +29,16 @@ p.add_argument("--lr", type=float, default=1.5e-3)
 p.add_argument("--wd", type=float, default=0.02)
 p.add_argument("--chunk", type=int, default=CHUNK_WIN)
 p.add_argument("--width", type=int, default=128)
+p.add_argument("--ctx-layers", type=int, default=2)
 p.add_argument("--seed", type=int, default=0)
 p.add_argument("--eval-every", type=int, default=2)
 p.add_argument("--rot-deg", type=float, default=15.0, help="max sensor-mount rotation augmentation")
+p.add_argument("--physics", type=int, default=0, help="1 = add gyro-integrated strap-down features")
+p.add_argument("--dilate", type=float, default=1.0, help="time-dilation aug: speed factor ~ logU(1/x, x); 1 = off")
+p.add_argument("--lag", type=int, default=0, help="1 = learned per-chunk IMU/GT time-shift head, supervised by measured lags")
+p.add_argument("--vib", type=float, default=1.0, help="vibration aug: scale the >~20 Hz part of the IMU by logU(1/x, x) per chunk (1 = off)")
+p.add_argument("--rot-deg-drone", type=float, default=-1, help="max rotation aug for drone chunks (-1 = same as --rot-deg)")
+p.add_argument("--boost-a", type=float, default=1.0, help="sampling weight multiplier for source-A drone trajectories (index <= 42 train / <= 8 val)")
 p.add_argument("--swa-from", type=int, default=0, help="if >0, average EMA weights over epochs >= this into runs/<name>/swa.pt")
 p.add_argument("--plat-probs", default="0.25,0.25,0.25,0.25", help="sampling probability per platform (car,dog,drone,human)")
 args = p.parse_args()
@@ -44,18 +51,43 @@ print("device", device, "| run", run, "| args", vars(args))
 # --------------------------------------------------------------------------- data
 T = args.chunk
 trajs = []                                                # list of dicts: imu, win_v, dense_v, plat, n_win
+from scipy.spatial.transform import Rotation
+
+
+def measure_lag_tokens(imu, quat, fs=200, max_lag=30):
+    """IMU-vs-GT time offset from |gyro| vs |GT angular rate| cross-correlation; returns tokens (50 ms), sign so that
+    GT(t) ~ f(IMU(t + lag)).  Negative = the IMU leads the ground truth."""
+    n = min(len(quat), 24000); Rq = Rotation.from_quat(quat[:n])
+    gb = np.linalg.norm((Rq[:-1].inv() * Rq[1:]).as_rotvec() * fs, axis=1); ga = np.linalg.norm(imu[:n - 1, 3:], axis=1)
+    ga, gb = ga - ga.mean(), gb - gb.mean(); best, best_l = -2, 0
+    for l in range(-max_lag, max_lag + 1):
+        x, y = (ga[l:], gb[:len(gb) - l]) if l >= 0 else (ga[:l], gb[-l:])
+        c = (x * y).sum() / np.sqrt((x * x).sum() * (y * y).sum() + 1e-12)
+        if c > best: best, best_l = c, l
+    return float(np.clip(best_l / 10.0, -2, 2))
+
+
 for split in args.splits.split(","):
-    for tid, d in load_split(split, keys=("imu", "vel_body")).items():
+    for tid, d in load_split(split, keys=("imu", "vel_body", "quat")).items():
         n = d["n_win"]
         vb = d["vel_body"][: n * WIN]
-        trajs.append({"id": tid, "imu": d["imu"][: n * WIN].astype(np.float32), "n_win": n,
-                      "win_v": vb.reshape(n, WIN, 3).mean(1).astype(np.float32),
-                      "dense_v": vb.reshape(n * TOK, WIN // TOK, 3).mean(1).astype(np.float32),
-                      "plat": PLAT2ID[tid.split("_")[0]]})
+        rec = {"id": tid, "imu": d["imu"][: n * WIN].astype(np.float32), "n_win": n,
+               "win_v": vb.reshape(n, WIN, 3).mean(1).astype(np.float32),
+               "dense_v": vb.reshape(n * TOK, WIN // TOK, 3).mean(1).astype(np.float32),
+               "plat": PLAT2ID[tid.split("_")[0]]}
+        rec["lag"] = measure_lag_tokens(d["imu"], d["quat"]) if args.lag else 0.0
+        if args.dilate > 1:                                   # gravity in the body frame, needed to dilate physically
+            rec["vel"] = vb.astype(np.float32)
+            rec["grav"] = Rotation.from_quat(d["quat"][: n * WIN]).inv().apply(np.tile([0.0, 0.0, 9.81], (n * WIN, 1))).astype(np.float32)
+        trajs.append(rec)
+def _is_source_a(tid):                                       # racing-drone source: fast, multi-mount, tiny
+    return tid.startswith("drone") and int(tid[-4:]) <= (42 if "train" in tid else 8)
 by_plat = {i: [k for k, t in enumerate(trajs) if t["plat"] == i] for i in range(4)}
-plat_w = {i: np.array([trajs[k]["n_win"] for k in ks], float) for i, ks in by_plat.items()}
+plat_w = {i: np.array([trajs[k]["n_win"] * (args.boost_a if _is_source_a(trajs[k]["id"]) else 1.0) for k in ks], float) for i, ks in by_plat.items()}
 plat_w = {i: w / w.sum() for i, w in plat_w.items()}
 print({PLATFORMS[i]: len(ks) for i, ks in by_plat.items()}, "trajectories;", sum(t["n_win"] for t in trajs), "windows")
+if args.lag:
+    print("measured lag (tokens) by platform:", {PLATFORMS[i]: np.round(np.mean([trajs[k]["lag"] for k in ks]), 2) for i, ks in by_plat.items()})
 
 rng = np.random.default_rng(args.seed)
 plat_probs = np.array([float(x) for x in args.plat_probs.split(",")]); plat_probs /= plat_probs.sum()
@@ -64,19 +96,30 @@ plat_probs = np.array([float(x) for x in args.plat_probs.split(",")]); plat_prob
 def sample_batch(B):
     """Platform-balanced random chunks of T windows (edge-padded + masked if trajectory is shorter)."""
     X = np.empty((B, T * WIN, 6), np.float32); Yw = np.empty((B, T, 3), np.float32)
-    Yd = np.empty((B, T * TOK, 3), np.float32); M = np.ones((B, T), np.float32); P = np.empty(B, np.int64)
+    Yd = np.empty((B, T * TOK, 3), np.float32); M = np.ones((B, T), np.float32); P = np.empty(B, np.int64); LG = np.zeros(B, np.float32)
     for b in range(B):
         pl = rng.choice(4, p=plat_probs)
         t = trajs[rng.choice(by_plat[pl], p=plat_w[pl])]
         n = t["n_win"]
-        if n >= T:
+        L = T * WIN
+        if args.dilate > 1 and n * WIN >= int(L * args.dilate) + 1:
+            # physical time dilation by speed factor sp: v -> sp v, gyro -> sp w, dynamic accel -> sp^2 (f - g)
+            sp = float(np.exp(rng.uniform(-np.log(args.dilate), np.log(args.dilate))))
+            Lr = int(round(L * sp))
+            s = rng.integers(0, n * WIN - Lr + 1)
+            src = np.arange(Lr, dtype=np.float32); q = np.linspace(0, Lr - 1, L, dtype=np.float32)
+            imu, vel, grav = (np.stack([np.interp(q, src, a[s:s + Lr, c]) for c in range(a.shape[1])], 1) for a in (t["imu"], t["vel"], t["grav"]))
+            X[b, :, :3] = grav + sp * sp * (imu[:, :3] - grav); X[b, :, 3:] = sp * imu[:, 3:]
+            v = sp * vel
+            Yw[b] = v.reshape(T, WIN, 3).mean(1); Yd[b] = v.reshape(T * TOK, WIN // TOK, 3).mean(1)
+        elif n >= T:
             s = rng.integers(0, n - T + 1)
             X[b] = t["imu"][s * WIN:(s + T) * WIN]; Yw[b] = t["win_v"][s:s + T]; Yd[b] = t["dense_v"][s * TOK:(s + T) * TOK]
         else:
             X[b, : n * WIN] = t["imu"]; X[b, n * WIN:] = t["imu"][-1]
             Yw[b, :n] = t["win_v"]; Yw[b, n:] = 0; Yd[b, : n * TOK] = t["dense_v"]; Yd[b, n * TOK:] = 0; M[b, n:] = 0
-        P[b] = t["plat"]
-    return X, Yw, Yd, M, P
+        P[b] = t["plat"]; LG[b] = t["lag"]
+    return X, Yw, Yd, M, P, LG
 
 
 def rand_rotation(B, max_deg):
@@ -91,16 +134,25 @@ def rand_rotation(B, max_deg):
     return I + s * K + (1 - c) * (K @ K)
 
 
-def augment(X, Yw, Yd):
-    """Physically consistent augmentation on device. X:(B,L,6) Yw:(B,T,3) Yd:(B,N,3)."""
+def augment(X, Yw, Yd, P):
+    """Physically consistent augmentation on device. X:(B,L,6) Yw:(B,T,3) Yd:(B,N,3) P:(B,) platform ids."""
     B = X.shape[0]
     R = rand_rotation(B, args.rot_deg)                                   # re-mount the sensor
+    if args.rot_deg_drone > 0:
+        Rd = rand_rotation(B, args.rot_deg_drone)
+        R = torch.where((P == PLAT2ID["drone"]).view(B, 1, 1), Rd, R)
     acc, gyr = X[..., :3] @ R.transpose(1, 2), X[..., 3:] @ R.transpose(1, 2)
     Yw, Yd = Yw @ R.transpose(1, 2), Yd @ R.transpose(1, 2)
     acc = acc * (1 + 0.02 * torch.randn(B, 1, 3, device=device)) + 0.15 * torch.randn(B, 1, 3, device=device)
     gyr = gyr * (1 + 0.02 * torch.randn(B, 1, 3, device=device)) + 0.02 * torch.randn(B, 1, 3, device=device)
     acc = acc + 0.05 * torch.randn_like(acc); gyr = gyr + 0.004 * torch.randn_like(gyr)
-    return torch.cat([acc, gyr], -1), Yw, Yd
+    X = torch.cat([acc, gyr], -1)
+    if args.vib > 1:                                                     # randomise vibration amplitude (high-frequency part)
+        lp = F.avg_pool1d(X.transpose(1, 2), 9, stride=1, padding=4, count_include_pad=False).transpose(1, 2)
+        s = torch.exp(torch.empty(B, 1, 2, device=device).uniform_(-math.log(args.vib), math.log(args.vib)))
+        s = torch.cat([s[..., :1].expand(B, 1, 3), s[..., 1:].expand(B, 1, 3)], -1)  # one factor for accel, one for gyro
+        X = lp + s * (X - lp)
+    return X, Yw, Yd
 
 
 def vhuber(pred, tgt, beta=0.25, mask=None):
@@ -128,7 +180,7 @@ def evaluate(m):
 
 
 # --------------------------------------------------------------------------- train
-model = IMUNet(width=args.width).to(device)
+model = IMUNet(width=args.width, ctx_layers=args.ctx_layers, physics=bool(args.physics), lag=bool(args.lag)).to(device)
 ema = deepcopy(model).eval()
 for q in ema.parameters():
     q.requires_grad_(False)
@@ -141,20 +193,21 @@ log, best = [], float("inf")
 swa_state, swa_n = None, 0
 t0 = time.time()
 for ep in range(1, args.epochs + 1):
-    model.train(); tot = {"win": 0., "dense": 0., "drift": 0., "plat": 0.}
+    model.train(); tot = {"win": 0., "dense": 0., "drift": 0., "plat": 0., "lag": 0.}
     for it in range(args.steps):
-        X, Yw, Yd, M, P = sample_batch(args.batch)
+        X, Yw, Yd, M, P, LG = sample_batch(args.batch)
         X, Yw, Yd = (torch.from_numpy(a).to(device) for a in (X, Yw, Yd))
-        M, P = torch.from_numpy(M).to(device), torch.from_numpy(P).to(device)
-        X, Yw, Yd = augment(X, Yw, Yd)
-        dense, plat = model(X.transpose(1, 2))
+        M, P, LG = torch.from_numpy(M).to(device), torch.from_numpy(P).to(device), torch.from_numpy(LG).to(device)
+        X, Yw, Yd = augment(X, Yw, Yd, P)
+        dense, plat, delta = model(X.transpose(1, 2), return_lag=True)
+        l_lag = F.smooth_l1_loss(delta, LG, beta=0.2) if delta is not None else torch.zeros((), device=device)
         pw = model.to_windows(dense)
         l_win = vhuber(pw, Yw, mask=M)
         l_dense = vhuber(dense, Yd, mask=M.repeat_interleave(TOK, dim=1))
         cum = torch.cumsum((pw - Yw) * M[..., None], dim=1)                    # integrated body-frame error
         l_drift = (torch.linalg.vector_norm(cum, dim=-1) / torch.sqrt(torch.arange(1, T + 1, device=device))).mean()
         l_plat = F.cross_entropy(plat, P)
-        loss = l_win + 0.5 * l_dense + 0.2 * l_drift + 0.05 * l_plat
+        loss = l_win + 0.5 * l_dense + 0.2 * l_drift + 0.05 * l_plat + 0.5 * l_lag
         opt.zero_grad(set_to_none=True); loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 2.0)
         opt.step(); sched.step()
@@ -162,7 +215,7 @@ for ep in range(1, args.epochs + 1):
             d = min(ema_decay, (1 + ep * args.steps + it) / (10 + ep * args.steps + it))
             for pe, pm in zip(ema.parameters(), model.parameters()):
                 pe.mul_(d).add_(pm.detach(), alpha=1 - d)
-        for k, v in zip(tot, (l_win, l_dense, l_drift, l_plat)):
+        for k, v in zip(tot, (l_win, l_dense, l_drift, l_plat, l_lag)):
             tot[k] += v.item() / args.steps
     rec = {"epoch": ep, "lr": sched.get_last_lr()[0], "min": (time.time() - t0) / 60, **{f"l_{k}": round(v, 4) for k, v in tot.items()}}
     if val_sol is not None and (ep % args.eval_every == 0 or ep == args.epochs):
