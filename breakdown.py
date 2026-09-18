@@ -6,7 +6,7 @@ from common import load_split, read_index, build_solution
 from kaggle_metric import _ate_traj, _ave_traj, AVE_REF, ATE_REF
 from model import IMUNet, predict_trajectory
 pd.set_option("display.width", 250)
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 sol = build_solution("val"); idx = read_index("val"); trajs = load_split("val", keys=("imu",))
 for ckpt in sys.argv[1:]:
     ck = torch.load(ckpt, map_location="cpu", weights_only=False); a = ck["args"]

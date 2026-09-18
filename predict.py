@@ -23,7 +23,7 @@ p.add_argument("--stride", type=int, default=2, help="chunk stride in windows (s
 p.add_argument("--val", action="store_true")
 p.add_argument("--tta-deg", type=float, default=0.0, help="rotation TTA: ±deg about each body axis (0 = off)")
 args = p.parse_args()
-device = torch.device("mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
 models = []
 for c in args.ckpt:

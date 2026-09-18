@@ -35,6 +35,7 @@ p.add_argument("--eval-every", type=int, default=2)
 p.add_argument("--rot-deg", type=float, default=15.0, help="max sensor-mount rotation augmentation")
 p.add_argument("--physics", type=int, default=0, help="1 = add gyro-integrated strap-down features")
 p.add_argument("--dilate", type=float, default=1.0, help="time-dilation aug: speed factor ~ logU(1/x, x); 1 = off")
+p.add_argument("--drop-source-b", type=int, default=0, help="1 = exclude the second drone source (train idx > 42 / val idx > 8) from training")
 p.add_argument("--lag", type=int, default=0, help="1 = learned per-chunk IMU/GT time-shift head, supervised by measured lags")
 p.add_argument("--vib", type=float, default=1.0, help="vibration aug: scale the >~20 Hz part of the IMU by logU(1/x, x) per chunk (1 = off)")
 p.add_argument("--rot-deg-drone", type=float, default=-1, help="max rotation aug for drone chunks (-1 = same as --rot-deg)")
@@ -44,7 +45,7 @@ p.add_argument("--plat-probs", default="0.25,0.25,0.25,0.25", help="sampling pro
 args = p.parse_args()
 
 torch.manual_seed(args.seed); np.random.seed(args.seed)
-device = torch.device("mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 run = Path("runs") / args.name; run.mkdir(parents=True, exist_ok=True)
 print("device", device, "| run", run, "| args", vars(args))
 
@@ -69,6 +70,8 @@ def measure_lag_tokens(imu, quat, fs=200, max_lag=30):
 
 for split in args.splits.split(","):
     for tid, d in load_split(split, keys=("imu", "vel_body", "quat")).items():
+        if args.drop_source_b and tid.startswith("drone") and int(tid[-4:]) > (42 if split == "train" else 8):
+            continue
         n = d["n_win"]
         vb = d["vel_body"][: n * WIN]
         rec = {"id": tid, "imu": d["imu"][: n * WIN].astype(np.float32), "n_win": n,
