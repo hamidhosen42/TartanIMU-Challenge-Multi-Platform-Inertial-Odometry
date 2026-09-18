@@ -35,6 +35,7 @@ p.add_argument("--eval-every", type=int, default=2)
 p.add_argument("--rot-deg", type=float, default=15.0, help="max sensor-mount rotation augmentation")
 p.add_argument("--physics", type=int, default=0, help="1 = add gyro-integrated strap-down features")
 p.add_argument("--dilate", type=float, default=1.0, help="time-dilation aug: speed factor ~ logU(1/x, x); 1 = off")
+p.add_argument("--traj-uniform", type=int, default=0, help="1 = sample trajectories uniformly within a platform (metric weights trajectories equally), instead of by length")
 p.add_argument("--drop-source-b", type=int, default=0, help="1 = exclude the second drone source (train idx > 42 / val idx > 8) from training")
 p.add_argument("--lag", type=int, default=0, help="1 = learned per-chunk IMU/GT time-shift head, supervised by measured lags")
 p.add_argument("--vib", type=float, default=1.0, help="vibration aug: scale the >~20 Hz part of the IMU by logU(1/x, x) per chunk (1 = off)")
@@ -86,7 +87,7 @@ for split in args.splits.split(","):
 def _is_source_a(tid):                                       # racing-drone source: fast, multi-mount, tiny
     return tid.startswith("drone") and int(tid[-4:]) <= (42 if "train" in tid else 8)
 by_plat = {i: [k for k, t in enumerate(trajs) if t["plat"] == i] for i in range(4)}
-plat_w = {i: np.array([trajs[k]["n_win"] * (args.boost_a if _is_source_a(trajs[k]["id"]) else 1.0) for k in ks], float) for i, ks in by_plat.items()}
+plat_w = {i: np.array([(1.0 if args.traj_uniform else trajs[k]["n_win"]) * (args.boost_a if _is_source_a(trajs[k]["id"]) else 1.0) for k in ks], float) for i, ks in by_plat.items()}
 plat_w = {i: w / w.sum() for i, w in plat_w.items()}
 print({PLATFORMS[i]: len(ks) for i, ks in by_plat.items()}, "trajectories;", sum(t["n_win"] for t in trajs), "windows")
 if args.lag:
