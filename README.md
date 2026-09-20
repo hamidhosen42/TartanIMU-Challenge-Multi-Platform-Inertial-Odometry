@@ -18,7 +18,10 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | `checkpoints/*.pt`, `configs/*.json`, `checkpoints/MANIFEST.json` | selected checkpoints (SHA-256 in the manifest / `REPORT.md`) and their exact configs |
 | `breakdown.py` | val score per platform and per drone source for checkpoints |
 | `notebooks/tartanimu_colab_experiments.ipynb` | Colab notebook: validated experiment grid + final fit + submission |
-| `REPORT.md`, `requirements.txt` | organisers' team report + environment |
+| `report/` → `Hack2Publish_TartanIMU_report.pdf` | technical report (IEEE template; tables from the official scoring service via `report/make_tables.py`) |
+| `hf_release/` | Hugging Face release: https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42 |
+| `official_scores/` | official scoring-service outputs (per platform / per sequence) |
+| `REPORT.md`, `requirements.txt` | earlier markdown report + environment |
 | `notebooks/tartanimu_v1_submission.ipynb` | **self-contained notebook** (Kaggle/local) reproducing v1 → `submission_v1.csv` |
 
 ## Approach
@@ -49,6 +52,8 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | final_n_uni_160 — v4 + uniform per-trajectory sampling, 160 ep | val recipe 0.1982 | 0.2978 |
 | final_w_uni_160 — wide + uniform sampling, 160 ep (laptop) | — | 0.2876 |
 | **final_kaggle_w_uni — same recipe trained on a Kaggle GPU (ranked, selected entry #1)** | — | **0.2861** |
+
+**Official full-test scores** (organisers' scoring service, all 89 sequences): ranked entry **0.21903** (AVE 0.180 m/s, ATE20 0.563 m; car 0.071 / human 0.053 / dog 0.074 / drone 0.522 m/s), second entry 0.22189.
 
 Public-LB noise is ±0.01–0.02 for this family (identical recipes on different GPUs: 0.2870 vs 0.3052), so entries were chosen by val-validated recipe first.
 

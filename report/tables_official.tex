@@ -1,0 +1,30 @@
+\begin{table}[htbp]
+    \centering\footnotesize
+    \caption{Overall challenge performance (official scoring service, full 89-sequence test set). The TartanIMU Score is
+    $0.6\,\mathrm{AVE}/0.7356 + 0.4\,\mathrm{ATE}_{20}/3.1160$, dimensionless, \emph{lower is better} (all-zero = 1.000).
+    \textbf{RTE does not enter the ranking}; it is defined in the caption of Table~\ref{tab:sequence_results}.
+    Baseline numbers are the organizers' published full-test values.}
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{lcccc}
+        \toprule Method & Score $\downarrow$ & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ \\ \midrule
+        TartanIMU Baseline & 0.538 & 1.261 & 0.461 & -- \\
+        Ours (Hack2Publish) & 0.2190 & 0.563 & 0.180 & 0.868 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:overall_results}
+\end{table}
+
+\begin{table}[htbp]
+    \centering\footnotesize
+    \caption{Performance by platform (official scoring service). RTE is defined in the caption of Table~\ref{tab:sequence_results}.}
+    \begin{tabular}{lccc}
+        \toprule Platform & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ \\ \midrule
+        Wheeled / Car & 0.369 & 0.071 & 0.323 \\
+        Handheld / Human & 0.490 & 0.053 & 0.270 \\
+        Legged / Quadruped & 0.358 & 0.074 & 0.353 \\
+        Aerial / Drone & 1.037 & 0.522 & 2.528 \\
+        \midrule Average & 0.563 & 0.180 & 0.868 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:platform_results}
+\end{table}
