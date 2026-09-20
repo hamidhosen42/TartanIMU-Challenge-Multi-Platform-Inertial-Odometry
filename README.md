@@ -15,7 +15,9 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | `model.py` | `IMUNet` (conv stem → dilated TCN → transformer context → dense 20 Hz velocity) + sliding-chunk trajectory inference |
 | `train.py` | platform-balanced chunk training with physical augmentation, EMA weights, official-metric validation |
 | `predict.py` | checkpoint (ensemble) → `submission.csv`, optional val self-scoring |
-| `checkpoints/full_long_swa.pt`, `configs/full_long.json` | ranked checkpoint (SHA-256 in `REPORT.md`) and its exact config |
+| `checkpoints/*.pt`, `configs/*.json`, `checkpoints/MANIFEST.json` | selected checkpoints (SHA-256 in the manifest / `REPORT.md`) and their exact configs |
+| `breakdown.py` | val score per platform and per drone source for checkpoints |
+| `notebooks/tartanimu_colab_experiments.ipynb` | Colab notebook: validated experiment grid + final fit + submission |
 | `REPORT.md`, `requirements.txt` | organisers' team report + environment |
 | `notebooks/tartanimu_v1_submission.ipynb` | **self-contained notebook** (Kaggle/local) reproducing v1 → `submission_v1.csv` |
 
@@ -40,7 +42,14 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | full — v1 recipe on train+val | — | 0.3625 |
 | ens3 — v1 + v2 (32 s, width 160) + full | 0.2171 (v1+v2) | 0.3592 |
 | ens4 — ens3 + full2 (v2 recipe on train+val) | — | 0.3544 |
-| **full_long — v1 recipe on train+val, 60 epochs, EMA+SWA (single model, ranked)** | — | **0.3466** |
+| full_long — v1 recipe on train+val, 60 epochs, EMA+SWA | — | 0.3466 |
+| final_v4 — v4 recipe (drone aug + physics feats), train+val, 100 ep | — | 0.2975 |
+| **final_v4_160 — same, 160 ep (selected entry #2)** | val recipe 0.2030 | **0.2870** |
+| final_v6_160 / final_colab — wide model, 160 / 240 ep | val recipe 0.1987 | 0.2893 / 0.2897 |
+| final_n_uni_160 — v4 + uniform per-trajectory sampling, 160 ep | val recipe 0.1982 | 0.2978 |
+| **final_w_uni_160 — wide + uniform sampling, 160 ep (ranked, selected entry #1)** | — | **0.2876** |
+
+Public-LB noise is ±0.01–0.02 for this family (identical recipes on different GPUs: 0.2870 vs 0.3052), so entries were chosen by val-validated recipe first.
 
 ## Run
 
@@ -49,7 +58,8 @@ python analysis.py                                   # EDA → analysis/summary.
 python train.py --name v1                            # train on train, validate on val → runs/v1/best.pt
 python predict.py --ckpt runs/v1/best.pt --val       # val score + submission.csv
 kaggle competitions submit -c tartan-imu-challenge-iros2026 -f submission.csv -m "v1"
-python train.py --name full_long --splits train,val --epochs 60 --steps 250 --swa-from 50   # ranked model → runs/full_long/swa.pt
-python predict.py --ckpt checkpoints/full_long_swa.pt --out submission.csv                  # reproduce the ranked submission
+python train.py --name final_w_uni_160 --splits train,val --epochs 160 --steps 250 --physics 1 --dilate 1.3 --rot-deg-drone 45 --boost-a 1 --traj-uniform 1 --swa-from 140 --width 192 --ctx-layers 3   # ranked model
+python predict.py --ckpt checkpoints/final_w_uni_160_swa.pt --out submission.csv   # reproduce the ranked submission
+python breakdown.py runs/<name>/swa.pt                                            # val breakdown of a train-only run
 ```
 # TartanIMU-Challenge-Multi-Platform-Inertial-Odometry

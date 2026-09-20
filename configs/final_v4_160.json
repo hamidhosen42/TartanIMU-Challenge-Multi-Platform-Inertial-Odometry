@@ -1,0 +1,23 @@
+{
+  "name": "final_v4_160",
+  "splits": "train,val",
+  "epochs": 160,
+  "steps": 250,
+  "batch": 64,
+  "lr": 0.0015,
+  "wd": 0.02,
+  "chunk": 16,
+  "width": 128,
+  "ctx_layers": 2,
+  "seed": 0,
+  "eval_every": 2,
+  "rot_deg": 15.0,
+  "physics": 1,
+  "dilate": 1.3,
+  "lag": 0,
+  "vib": 1.0,
+  "rot_deg_drone": 45.0,
+  "boost_a": 4.0,
+  "swa_from": 140,
+  "plat_probs": "0.25,0.25,0.25,0.25"
+}

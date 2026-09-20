@@ -7,22 +7,22 @@
 | Team name (exactly as on the leaderboard) | _TODO: fill in from the leaderboard_ |
 | Members (name — affiliation) | Md. Hamid Hosen — _TODO: affiliation_ |
 | Contact email | hamidhosen8444@gmail.com |
-| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | Kaggle submission ID **56313744** — `submission_full_long.csv`, 2026-09-17 21:12 UTC |
-| Public score of that submission | 0.34661 |
+| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | **56394522** — `submission_final_w_uni_160.csv`, 2026-09-20 12:54 UTC (our two selected Kaggle entries are this one and **56332266** `submission_final_v4_160.csv`, 2026-09-18 08:17 UTC; both checkpoints are included) |
+| Public score of that submission | 0.28763 (second entry: 0.28696) |
 | Score you expect us to reproduce | same ± 0.005 (single seed, EMA+SWA weights; MPS vs CUDA numerics differ slightly) |
 | Code repository or archive (a private link is fine) | https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry |
-| Commit SHA that produced the checkpoint | `6bea7bb50113db6c04b0d616d42fa90fba27f72b` (training code; the checkpoint itself is committed in the following commit) |
-| Checkpoint file name(s) | `checkpoints/full_long_swa.pt` (in the repository) |
-| Checkpoint SHA-256 | `0131e2ebe662fb78f269875c07eafececec2966bc0b6e542ce96b1d2f56fe352` |
-| Config file path inside the repository | `configs/full_long.json` (the exact argparse namespace; also stored inside the checkpoint under `args`). Reproduce with `python train.py --name full_long --splits train,val --epochs 60 --steps 250 --swa-from 50` |
-| Total training cost (GPU type × hours) | Apple M5 laptop GPU (MPS) × 1.9 h for the ranked run; ≈10 h total across all experiments |
+| Commit SHA that produced the checkpoint | `a9a53840d23a8a426a05d5d616bead0e2f77325e` (training code; checkpoints are committed in the following commit) |
+| Checkpoint file name(s) | `checkpoints/final_w_uni_160_swa.pt` (ranked); `checkpoints/final_v4_160_swa.pt` (second selected entry); `checkpoints/MANIFEST.json` |
+| Checkpoint SHA-256 | `89a0db50a1300b47de87141e0871dc87836135b75cf1025ca1aeeba7b47006ea` (ranked); `f1eb208625e2c161d88baeaf3ec5203db7455d63bd8bfa24e1b424851b507a05` (second) |
+| Config file path inside the repository | `configs/final_w_uni_160.json` / `configs/final_v4_160.json` (exact argparse namespaces; also stored inside each checkpoint under `args`). Reproduce with `python train.py --name final_w_uni_160 --splits train,val --epochs 160 --steps 250 --physics 1 --dilate 1.3 --rot-deg-drone 45 --boost-a 1 --traj-uniform 1 --swa-from 140 --width 192 --ctx-layers 3` |
+| Total training cost (GPU type × hours) | Apple M5 laptop GPU (MPS) × ≈9 h for the ranked run (shared with another run for part of it); ≈45 h total across all experiments, plus ≈6 h on a Colab L4 |
 
 ## Artifact checklist
 
-- [x] **Final checkpoint(s)** — `checkpoints/full_long_swa.pt`
+- [x] **Final checkpoint(s)** — `checkpoints/final_w_uni_160_swa.pt`, `checkpoints/final_v4_160_swa.pt`
 - [x] **Training code** — `train.py`, `model.py`, `common.py` at the commit above
-- [x] **The exact config / hyper-parameter file** — `configs/full_long.json`
-- [x] **Inference script** — `predict.py` (`python predict.py --ckpt checkpoints/full_long_swa.pt --out submission.csv`)
+- [x] **The exact config / hyper-parameter file** — `configs/final_w_uni_160.json`, `configs/final_v4_160.json`
+- [x] **Inference script** — `predict.py` (`python predict.py --ckpt checkpoints/final_w_uni_160_swa.pt --out submission.csv`; reproduces the submitted CSV bit-exactly on MPS)
 - [x] **Environment** — `requirements.txt` (Python 3.12.11)
 - [x] **This report.**
 
@@ -32,7 +32,7 @@
 
 | Question | Yes / No | If yes, describe |
 | --- | --- | --- |
-| Weight averaging across checkpoints (soup, EMA, SWA)? | Yes | EMA of the weights during training (decay 0.998), then a uniform average of the EMA weights at the end of each of the last 11 epochs (epochs 50–60) of the *same* run (`swa_n = 11` stored in the checkpoint). One weight set results. |
+| Weight averaging across checkpoints (soup, EMA, SWA)? | Yes | EMA of the weights during training (decay 0.998), then a uniform average of the EMA weights at the end of each of the last 21 epochs (epochs 140–160) of the *same* run (`swa_n = 21` stored in the checkpoint). One weight set results. |
 | Test-time augmentation, output scaling, or calibration? | No | Only overlap averaging of sliding 16 s chunks (stride 2 windows, Hann weights) over each test trajectory — the same procedure is used for validation. No scaling, clipping or calibration. |
 | Any per-platform behavior — and is it internal routing or separate models? | No | No platform input, no routing. An auxiliary 4-way platform classification head is trained (loss weight 0.05) and its output is discarded at inference. |
 | Pretrained weights not included in the release? | No | Trained from scratch. |
@@ -47,7 +47,7 @@ Signed (name, date): Md. Hamid Hosen, 2026-09-_TODO_
 
 ## 1. Backbone
 
-A context model over whole trajectories: raw 200 Hz IMU (6 channels, fixed scaling, gravity retained) → strided conv stem (200 → 20 Hz tokens) → 8 residual depthwise-dilated temporal-convolution blocks (dilations 1,2,4,8,16,32,1,2; ≈13 s receptive field) → 2-layer transformer encoder (4 heads, learned positions) over the whole 16 s chunk → per-token linear head giving dense 20 Hz body-frame velocity, averaged to one vector per 1 s window. 1.78 M parameters. Relative to the released ResNet-LSTM baseline the differences are (i) the model reads past *and future* context across many windows of the same trajectory instead of one isolated 1 s window, and (ii) it has no platform input or per-platform heads — embodiment is inferred implicitly (an auxiliary classification head is used only as a training signal).
+A context model over whole trajectories: raw 200 Hz IMU (6 channels, fixed scaling, gravity retained) → strided conv stem (200 → 20 Hz tokens), plus a projection of deterministic strap-down features (gyro-integrated relative orientation, de-gravitated acceleration and integrated velocity change within the chunk, computed under both gyro-z sign hypotheses) added to the tokens → 8 residual depthwise-dilated temporal-convolution blocks (dilations 1,2,4,8,16,32,1,2; ≈13 s receptive field) → 3-layer transformer encoder (4 heads, learned positions) over the whole 16 s chunk → per-token linear head giving dense 20 Hz body-frame velocity, averaged to one vector per 1 s window. Width 192, 3.9 M parameters (the second selected entry is the width-128 / 2-layer variant with 1.8 M parameters). Relative to the released ResNet-LSTM baseline the differences are (i) the model reads past *and future* context across many windows of the same trajectory instead of one isolated 1 s window, and (ii) it has no platform input or per-platform heads — embodiment is inferred implicitly (an auxiliary classification head is used only as a training signal).
 
 ## 2. Loss
 
@@ -62,18 +62,36 @@ Weights were set once by hand (not tuned or scheduled).
 ## 3. Data handling
 
 - Windows are used as given (k·200 … (k+1)·200); trajectories are kept whole in memory and training samples are random 16-window (3 200-sample) chunks. Trajectories shorter than 16 windows are edge-padded and masked.
-- **Platform-balanced sampling**: each chunk picks a platform uniformly (the metric is macro-averaged), then a trajectory with probability ∝ length.
-- Augmentation (all on device, per chunk): random sensor-mount rotation — uniform axis, angle U(0°, 15°) — applied identically to accelerometer, gyroscope **and** the target velocity; accelerometer scale 1 + N(0, 0.02) and bias N(0, 0.15 m/s²); gyroscope scale 1 + N(0, 0.02) and bias N(0, 0.02 rad/s); white noise σ = 0.05 m/s² / 0.004 rad/s.
+- **Metric-shaped sampling**: each chunk picks a platform uniformly (the metric is macro-averaged over platforms), then a
+  trajectory *uniformly within the platform* (the metric averages per trajectory, so short trajectories count as much as
+  long ones; sampling ∝ length — used until v6 — under-trained the short, hardest drone trajectories: val 0.2030 → 0.1982).
+- Augmentation (all on device, per chunk): random sensor-mount rotation — uniform axis, angle U(0°, 15°), U(0°, 45°) for drone chunks — applied identically to accelerometer, gyroscope **and** the target velocity; accelerometer scale 1 + N(0, 0.02) and bias N(0, 0.15 m/s²); gyroscope scale 1 + N(0, 0.02) and bias N(0, 0.02 rad/s); white noise σ = 0.05 m/s² / 0.004 rad/s.
+- Physically exact time dilation of training chunks by a factor logU(1/1.3, 1.3): velocity ×s, gyro ×s, dynamic acceleration ×s² with the gravity component (from the training quaternion) kept, sequence resampled.
 - Input normalisation: fixed division by (3, 3, 3, 0.4, 0.4, 0.4); no mean subtraction (keeps the rotation augmentation exact and gravity available as a tilt cue).
 - Split: the ranked checkpoint is trained on **train + val** (the released splits, concatenated) with a fixed schedule; model design and all hyper-parameters were chosen on runs trained on `train` only and scored on `val` with the organisers' scorer.
 
 ## 4. Training schedule
 
-AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **60 epochs** (v1 model-selection runs: 30 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 50–60. Apple M5 laptop (MPS backend, FP32), ≈0.45 s/step → 116 min wall-clock for the ranked run.
+AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **160 epochs** (model-selection runs: 60 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 140–160. Apple M5 laptop (MPS backend, FP32), ≈3 min/epoch for the wide model → ≈8–9 h wall-clock for the ranked run.
 
 ## 5. Model selection — how did you choose which checkpoint to submit?
 
-Design decisions were made on `val` with the organisers' exact scorer (`kaggle_metric.py`), never on the leaderboard: v1 (16 s context, width 128) reached val 0.2247 and v2 (32 s context, width 160, drone-heavier sampling) 0.2293, so the v1 recipe was kept. The ranked checkpoint is the final EMA+SWA weights of one fixed-length train+val run — no early stopping and no checkpoint picking are possible on it, since `val` is inside its training set. In total we uploaded 6 submissions to Kaggle (1 earlier baseline, v1, full, two prediction-ensembles, and the ranked single model). Public scores: v1 0.378 → full (train+val, 30 ep) 0.363 → ensembles 0.359 / 0.354 → ranked single model (train+val, 60 ep, SWA) **0.347**. Public LB tracked val ordering but with a large offset (val 0.225 ↔ LB 0.378), consistent with the organisers' note that the public split is harder than private (baseline 0.637 public / 0.456 private).
+Design decisions were made on `val` with the organisers' exact scorer (`kaggle_metric.py`), scored per platform and
+separately for the two drone sources (`breakdown.py`). Val progression of the train-only runs (60 epochs unless noted):
+v1 0.2247 (30 ep) → v3 +drone augmentation 0.2233 → v4 = v3 for 60 epochs **0.2030** → v6 wide model 0.1987 →
+v7 = v4 + uniform per-trajectory sampling 0.1982. Rejected on val: 32 s context (0.2293 vs 0.2247), a learned IMU/GT
+time-shift head, strap-down physics features alone, rotation TTA, smoothing.
+
+The ranked checkpoint is the final EMA+SWA weights of one fixed-length train+val run of a val-chosen recipe — no early
+stopping and no checkpoint picking are possible on it, since `val` is inside its training set.
+
+We uploaded 12 submissions in total (1 earlier baseline, 2 prediction ensembles that are *not* eligible, and 9 single
+models). An important observation for the analysis paper: **the public leaderboard is noisy at the ±0.01–0.02 level for
+this model family.** Two runs of the *identical* recipe (v4, 160 epochs, train+val) on different hardware (Apple M5 vs.
+an L4 GPU, hence different random paths) scored 0.2870 and 0.3052; the wide 240-epoch and 160-epoch models scored
+0.2897 / 0.2893. Val differences of a few thousandths therefore do not transfer to the public split, which is dominated by
+a handful of short racing-drone trajectories. We consequently chose the two final entries by *val-validated recipe*
+first and public score second, and we did not tune anything against the leaderboard.
 
 ## 6. Inference-time processing
 
@@ -96,7 +114,8 @@ Design decisions were made on `val` with the organisers' exact scorer (`kaggle_m
 - Strap-down "physics" input features (gyro-integrated relative orientation, de-gravitated acceleration, integrated velocity change over the 16 s chunk, under both gyro-z sign hypotheses) → kept in the final model but no measurable gain; raw 16 s integration drifts by 5–20 m/s because of uncompensated gyro bias/scale, so the network's implicit short-horizon integration is already better; cost 2 h.
 - A learned per-chunk IMU↔ground-truth **time-shift head** (supervised by lags measured on train) predicts the offsets of unseen recordings well (−66/−48 ms predicted vs −40/−70 ms measured for DAVIS-type recordings, −14/−10 vs −10 ms for Snapdragon-type, +52 vs +95 ms for an offset dog trajectory) but did not improve the score (val 0.223 vs 0.212 at equal epochs) → dropped; cost 2 h.
 - Rotation TTA, prediction smoothing (3-window moving average: ATE worse on every platform), denser overlap (stride 1 vs 4: identical) → no gain.
-- Longer training was the single largest lever: 30 → 60 epochs of the same recipe gave val 0.2233 → 0.2030 (drone-B AVE 0.328 → 0.271, car 0.129 → 0.117, human 0.085 → 0.073).
+- Longer training was the single largest lever: 30 → 60 epochs of the same recipe gave val 0.2233 → 0.2030 (drone-B AVE 0.328 → 0.271, car 0.129 → 0.117, human 0.085 → 0.073); public LB 0.3625 (30 ep) → 0.3466 (60 ep) → 0.2975 (100 ep) → 0.2870 (160 ep). Going to 240 epochs or a 1.9× wider trunk (val 0.1987) gave no further public gain (0.2897 / 0.2893) — within the ±0.01–0.02 leaderboard noise measured above.
+- Tried making the second drone source's IMU frame consistent with its target frame (its gyro-z is inverted and its accelerometer dynamics fit no axis relabeling — unconstrained 3×3 fits show axis gains of 0.6–2.1), so that the racing-drone source could benefit from the 3.4 h of the other source → not feasible; cost 2 h of analysis.
 
 ## 9. ★ If you had to name one component that mattered most, what would it be?
 
