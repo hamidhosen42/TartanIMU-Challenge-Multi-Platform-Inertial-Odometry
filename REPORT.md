@@ -4,8 +4,8 @@
 
 | Field | Your answer |
 | --- | --- |
-| Team name (exactly as on the leaderboard) | _TODO: fill in from the leaderboard_ |
-| Members (name — affiliation) | Md. Hamid Hosen — _TODO: affiliation_ |
+| Team name (exactly as on the leaderboard) | Hack2Publish |
+| Members (name — affiliation) | Md. Hamid Hosen (team leader); Esfer Sami |
 | Contact email | hamidhosen8444@gmail.com |
 | Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | **56402554** — `submission_final_kaggle_w_uni.csv`, 2026-09-20 17:34 UTC (our two selected Kaggle entries are this one and **56332266** `submission_final_v4_160.csv`, 2026-09-18 08:17 UTC; both checkpoints are included) |
 | Public score of that submission | 0.28609 (second entry: 0.28696) |
@@ -39,7 +39,7 @@
 | External data (public or private) beyond the challenge dataset? | No | |
 | Anything else that changes the numbers and is not in the training code? | No | Earlier leaderboard entries (`submission_ens3/ens4.csv`) were prediction averages of several runs and are **not** the submission we ask to rank. |
 
-Signed (name, date): Md. Hamid Hosen, 2026-09-_TODO_
+Signed (name, date): Md. Hamid Hosen, 2026-09-21
 
 ---
 
