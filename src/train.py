@@ -47,7 +47,7 @@ args = p.parse_args()
 
 torch.manual_seed(args.seed); np.random.seed(args.seed)
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-run = Path("runs") / args.name; run.mkdir(parents=True, exist_ok=True)
+run = Path(__file__).resolve().parent.parent / "runs" / args.name; run.mkdir(parents=True, exist_ok=True)
 print("device", device, "| run", run, "| args", vars(args))
 
 # --------------------------------------------------------------------------- data

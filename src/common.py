@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent   # project root
 DATA = ROOT / "data"
 WIN = 200
 PLATFORMS = ["car", "dog", "drone", "human"]

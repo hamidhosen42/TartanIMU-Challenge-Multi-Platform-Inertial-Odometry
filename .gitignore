@@ -11,11 +11,13 @@ runs/
 *.log
 nohup.out
 submission*.csv
+!results/submissions/submission_final_kaggle_w_uni.csv
+!results/submissions/submission_final_v4_160.csv
 
 # python
 __pycache__/
 *.pyc
 .DS_Store
 
-# ranked checkpoint is committed on purpose
-!checkpoints/
+# selected checkpoints are committed on purpose
+!models/checkpoints/

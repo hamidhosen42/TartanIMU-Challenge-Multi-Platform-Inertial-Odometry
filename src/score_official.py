@@ -2,7 +2,7 @@
 import sys, json, shutil, time, pathlib, pandas as pd
 from gradio_client import Client, handle_file
 csv, team, tag = sys.argv[1], sys.argv[2], sys.argv[3]
-out = pathlib.Path("official_scores"); out.mkdir(exist_ok=True)
+out = pathlib.Path(__file__).resolve().parent.parent / "results" / "official_scores"; out.mkdir(exist_ok=True)
 for attempt in range(14):                                  # up to ~70 min (team-list sync)
     c = Client("Tartan-IMU/imu_odometry_challenge_scoring", verbose=False)
     overall, platform, seqs, csv_path, md = c.predict(handle_file(csv), team, api_name="/run")

@@ -1,0 +1,11 @@
+TartanIMU Challenge - Multi-Platform Inertial Odometry (team Hack2Publish)
+Copyright 2026 Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto
+
+Third-party components:
+- src/kaggle_metric.py is the organisers' leaderboard scorer, copied unchanged from the
+  TartanIMU starter kit (https://github.com/superxslam/TartanIMU, Apache License 2.0,
+  Copyright the TartanIMU authors, CMU AirLab).
+- docs/report/ieeeconf.cls and docs/paper/ieeeconf.cls are the IEEE conference LaTeX class
+  distributed with the challenge report template.
+- The competition data (TartanIMU Challenge, CMU AirLab) is NOT redistributed here; download it from
+  Kaggle under the competition's own terms. The released weights are for research use.

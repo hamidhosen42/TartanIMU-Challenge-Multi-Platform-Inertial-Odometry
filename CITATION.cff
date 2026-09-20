@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: "If you use this code, the released weights or the data findings, please cite it as below, together with the TartanIMU dataset and challenge."
+title: "One Model, Four Bodies: Trajectory-Context Inertial Velocity Estimation Across Cars, Quadrupeds, Drones and Handheld Sensors"
+type: software
+authors:
+  - family-names: Hosen
+    given-names: Md. Hamid
+    email: mdhamidhosen4@gmail.com
+  - family-names: Sami
+    given-names: Esfer
+  - family-names: Ashraf
+    given-names: Kahakashan
+  - family-names: Shanto
+    given-names: Foysal Emon
+version: "1.0"
+date-released: "2026-09-21"
+license: Apache-2.0
+repository-code: "https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry"
+url: "https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42"
+keywords: [inertial odometry, IMU, velocity estimation, TartanIMU, IROS 2026]
+references:
+  - type: conference-paper
+    title: "Tartan IMU: A Light Foundation Model for Inertial Positioning in Robotics"
+    authors:
+      - family-names: Zhao
+        given-names: Shibo
+      - family-names: Zhou
+        given-names: Sifan
+      - family-names: Blanchard
+        given-names: Raphael
+      - family-names: Qiu
+        given-names: Yuheng
+      - family-names: Wang
+        given-names: Wenshan
+      - family-names: Scherer
+        given-names: Sebastian
+    conference: "IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)"
+    year: 2025
+  - type: generic
+    title: "TartanIMU Challenge: Multi-Platform Inertial Odometry"
+    authors:
+      - name: "Zhao, Yi and Yagnyatinskiy, Maxim and Chen, Yutian and Wen, Haomin and Shi, Chris and Manda, Mahati and Fei, Xiang and Cao, Muqing and Geng, Junyi and Qiu, Yuheng and Zhou, Sifan and Yuan, Junbin and Wang, Chen and Scherer, Sebastian and Shi, Guanya and Wang, Wenshan and Zhao, Shibo"
+    year: 2026
+    url: "https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026"

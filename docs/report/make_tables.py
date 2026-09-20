@@ -2,7 +2,7 @@
 import json, pathlib, sys
 import pandas as pd
 here = pathlib.Path(__file__).resolve().parent
-src = here.parent / "official_scores" / "final_kaggle_w_uni.json"
+src = here.parent.parent / "results" / "official_scores" / "final_kaggle_w_uni.json"
 BASE = {"Score": 0.538, "ATE20": 1.261, "AVE": 0.461}            # organizers' baseline, full test set (starter kit)
 PLAT = [("car", "Wheeled / Car"), ("human", "Handheld / Human"), ("dog", "Legged / Quadruped"), ("drone", "Aerial / Drone")]
 
