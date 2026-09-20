@@ -5,7 +5,7 @@
 | Field | Your answer |
 | --- | --- |
 | Team name (exactly as on the leaderboard) | Hack2Publish |
-| Members (name — affiliation) | Md. Hamid Hosen (team leader); Esfer Sami |
+| Members (name — affiliation) | Md. Hamid Hosen (team leader); Esfer Sami; Kahakashan Ashraf |
 | Contact email | hamidhosen8444@gmail.com |
 | Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | **56402554** — `submission_final_kaggle_w_uni.csv`, 2026-09-20 17:34 UTC (our two selected Kaggle entries are this one and **56332266** `submission_final_v4_160.csv`, 2026-09-18 08:17 UTC; both checkpoints are included) |
 | Public score of that submission | 0.28609 (second entry: 0.28696) |

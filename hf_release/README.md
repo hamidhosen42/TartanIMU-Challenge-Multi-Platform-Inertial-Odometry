@@ -56,4 +56,4 @@ bias / scale / white noise.
 * Weight averaging: EMA during training and a uniform average of the EMA weights over the last 20 epochs of the same run.
 * Training code (exact commit), configs and the technical report: https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry
 
-Team: **Hack2Publish** (Md. Hamid Hosen, Esfer Sami; Kaggle user hosen42). Data: TartanIMU Challenge, CMU AirLab.
+Team: **Hack2Publish** (Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf; Kaggle user hosen42). Data: TartanIMU Challenge, CMU AirLab.
