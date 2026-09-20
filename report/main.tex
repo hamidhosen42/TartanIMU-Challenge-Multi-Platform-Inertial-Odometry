@@ -29,299 +29,352 @@ Md.\ Hamid Hosen$^{1}$ and Esfer Sami$^{2}$%
 \thanks{$^{2}$Esfer Sami, team member.}%
 }
 
+
 \begin{document}
 \maketitle
 \thispagestyle{empty}
 \pagestyle{empty}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-We describe a single unified network (one shared set of weights for car, quadruped, drone and handheld) that
-predicts the mean body-frame velocity of every 1\,s window from raw 6-axis IMU alone. The core idea is to stop
-treating windows in isolation: the model reads 16\,s chunks of a trajectory (past \emph{and} future), predicts a
-dense 20\,Hz velocity for the whole chunk, and overlapping chunks are averaged at inference. The trunk is a strided
-convolutional stem augmented with deterministic strap-down features, eight dilated depthwise temporal-convolution
-blocks and a three-layer transformer encoder (3.9\,M parameters). Training is shaped after the metric: platforms
-are sampled uniformly and trajectories uniformly within a platform, and an integrated-error loss targets
-ATE$_{20}$ directly. Augmentation is physically exact (random sensor re-mount rotations applied to both the IMU and
-the target velocity, time dilation using the training-time gravity vector, bias/scale/noise). All model selection
-was done on the held-out \texttt{val} split with the organizers' scorer; the final model was refit on train+val for
-160 epochs with EMA and SWA. The submitted model scores \textbf{0.219} on the full 89-sequence test set (official scoring service; macro AVE
-0.180\,m/s, ATE$_{20}$ 0.563\,m; car/dog/human AVE 0.05--0.07\,m/s, drone 0.52\,m/s) and 0.28609 on the public
-leaderboard (rank 9 of 108 at close, from an initial 0.553 of ours), with a held-out val score of 0.198. We also report two data findings that bound what
-any IMU-only model can achieve on the drone split, and a measured public-leaderboard noise of $\pm$0.01--0.02 for
-identical recipes.
+This report describes the Hack2Publish entry to the IMU Odometry Challenge. We train one network, with a single
+set of weights, that takes raw 6-axis IMU at 200\,Hz and outputs the mean body-frame velocity of every 1\,s window
+for all four platforms. The main idea is to let the network see much more than one window: at inference we cut
+each test trajectory into 16\,s chunks, predict a dense 20\,Hz velocity for the whole chunk, and average the
+overlapping chunk predictions. The network is a strided convolutional stem, eight dilated temporal-convolution
+blocks and a small three-layer transformer (3.9\,M parameters); a set of hand-computed strap-down features is added
+to the stem output. Training samples platforms and trajectories the way the metric averages them, and adds a loss on
+the integrated velocity error so that the ATE$_{20}$ term is optimised as well as the AVE term. Augmentation is kept
+physically exact: random re-mounting of the sensor (applied to the IMU and to the velocity label), time dilation
+using the gravity vector available at training time, and bias/scale/noise. Only the challenge data was used. We chose
+every hyper-parameter on the released \texttt{val} split and then refit the final model on train+val for 160 epochs
+(EMA plus weight averaging over the last 20 epochs). On the official scoring service the submitted model reaches a
+TartanIMU Score of 0.219 over the 89 test sequences (macro AVE 0.180\,m/s, ATE$_{20}$ 0.563\,m). On the public
+leaderboard it scores 0.28609, ninth place at the close. We also document two properties of the drone data that we
+believe limit every IMU-only entry, and a measured leaderboard noise of $\pm$0.01--0.02 between identical recipes.
 \end{abstract}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
-Learning an inertial odometer that works across embodiments is hard for three reasons. (i)~The observability of
-velocity from a 6-axis IMU is fundamentally limited: gravity, sensor bias and mount orientation are entangled
-with the signal, and slow motions (a hovering drone, a person standing) produce almost no measurable
-acceleration. (ii)~The four platforms differ by an order of magnitude in speed, vibration and dynamics, and the
-test set is platform-blind, so one network must infer the embodiment from the signal itself. (iii)~The
-ground truth is not homogeneous: it comes from different capture systems with different conventions and timing.
+Three things make a general inertial odometer difficult. First, the physics is only partly observable: a 6-axis
+IMU measures specific force and angular rate, so gravity, sensor biases and the mounting of the sensor are mixed into
+the same six numbers as the motion we want, and slow motion (a hovering drone, a person standing still) hardly shows
+up at all. Second, the four embodiments in this challenge differ by an order of magnitude in speed, vibration and
+dynamics, and the test set does not say which is which, so the network has to work that out from the signal. Third,
+the ground truth was produced by different capture systems, and, as we found during the challenge, they are not
+equally consistent with the IMU streams.
 
-Our solution was motivated by a simple observation in the training data: the per-window velocity is strongly
-autocorrelated (lag-1 correlation 0.85 car, 0.78 dog, 0.56 human), and an oracle that merely averages the two
-neighbouring windows' true velocities already halves the all-zero error. Since test trajectories are given whole,
-a model is allowed to use context; a 1\,s window cannot estimate gyroscope bias, low-frequency tilt or the
-embodiment reliably, but 16\,s can. The key components are therefore (1)~a trajectory-context architecture with
-dense output and overlap averaging, (2)~a training procedure shaped after the macro-/per-trajectory averaging of
-the TartanIMU score, and (3)~physically exact augmentation. Our contributions beyond the model are two data
-findings (Sec.~\ref{sec:data}) that explain most of the drone difficulty and a measurement of leaderboard noise
-that affected how we selected our final entries.
+Our approach was shaped by one measurement we made early on: the per-window velocity is strongly correlated between
+neighbouring windows (lag-1 correlation 0.85 for the car, 0.78 for the dog, 0.56 for the human), and an oracle that
+simply averages the true velocities of the two neighbouring windows already halves the all-zero error. A single
+second of IMU cannot estimate gyroscope bias, low-frequency tilt or the embodiment with any confidence; sixteen
+seconds can. Since the test trajectories are provided whole, we built the entire solution around trajectory context.
+The other two ingredients are a training procedure that mirrors how the score is averaged, and augmentation that
+respects the physics of the sensor. What we think distinguishes the entry is less any single component than the
+discipline of selecting everything on the held-out split and then explaining, with measurements, where the remaining
+error comes from. Our contributions are (i) the context model and training recipe, (ii) an experimental record of
+what helped and what did not, and (iii) two data findings about the drone split (Sec.~\ref{sec:data}) that we hope
+are useful to the organisers.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Method}
 \subsection{Overall Architecture}
-Fig.~\ref{fig:method_overview} shows the pipeline. Input is a raw 200\,Hz chunk of $T{=}16$ consecutive 1\,s
-windows (3200$\times$6, $[a_x,a_y,a_z,\omega_x,\omega_y,\omega_z]$, gravity retained), divided channel-wise by
-$(3,3,3,0.4,0.4,0.4)$ with no mean subtraction. A strided convolutional stem (kernels 9/2 and 11/5) produces
-20\,Hz tokens; deterministic strap-down features computed on the same chunk (gyro-integrated relative orientation
-via a parallel prefix product of per-token rotations, the acceleration rotated into the chunk-start frame with the
-chunk mean taken as a gravity estimate, and its integral, all expressed back in the current body frame; computed
-under both gyro-$z$ sign hypotheses, see Sec.~\ref{sec:data}) are projected and added to the tokens. Eight residual
-depthwise-dilated temporal-convolution blocks (dilations 1,2,4,8,16,32,1,2; receptive field $\approx$13\,s,
-GroupNorm) are followed by a 3-layer transformer encoder (width 192, 4 heads, learned positions) over the whole
-chunk and a per-token linear head that outputs dense 20\,Hz body-frame velocity, averaged to one vector per
-window. An attention-pooled descriptor feeds an auxiliary 4-way platform classifier used only as a training
-signal. Nothing in the network is conditioned on a platform label; the embodiment is inferred implicitly, which the
-auxiliary head merely encourages. Design choices aimed at cross-platform generalization: no per-channel mean
-normalization (keeps gravity as a tilt cue and makes rotation augmentation exact), bidirectional context (bias
-and tilt are estimated from the whole chunk), and platform-balanced sampling.
+The pipeline is drawn in Fig.~\ref{fig:method_overview}. The input is a chunk of $T{=}16$ consecutive windows, i.e.\
+$3200\times 6$ raw samples $[a_x,a_y,a_z,\omega_x,\omega_y,\omega_z]$ with gravity retained. We do not subtract a
+mean; each channel is only divided by a fixed constant ($3\,\mathrm{m/s^2}$ for the accelerometer,
+$0.4\,\mathrm{rad/s}$ for the gyroscope). Keeping the mean matters twice: gravity is the only tilt cue the network
+has, and a zero-mean rotation augmentation stays exact.
+
+A two-layer strided convolution (kernel 9, stride 2; kernel 11, stride 5) turns the 200\,Hz signal into 20\,Hz
+tokens of width 192. In parallel we compute, without learned parameters, a small set of strap-down features on the
+same chunk: the gyroscope is integrated into a relative orientation for every token (a parallel prefix product of
+per-token rotation matrices), the accelerometer is rotated into the frame of the chunk start, its chunk mean is used
+as a gravity estimate, and the de-gravitated acceleration and its running integral are rotated back into the current
+body frame. Because one of the drone sources has an inverted gyroscope $z$ axis (Sec.~\ref{sec:data}), we compute
+these features for both signs of $\omega_z$ and let the network decide; a $1\times1$ projection adds the 18 channels
+to the tokens. Eight residual blocks follow, each a depthwise convolution (kernel 5, dilations 1, 2, 4, 8, 16, 32, 1,
+2) and a pointwise MLP with GroupNorm, giving a receptive field of roughly 13\,s. A three-layer transformer encoder
+(4 heads, learned positional embedding, pre-norm) then mixes the 320 tokens of the chunk, and a linear head outputs a
+velocity per token, i.e.\ a dense 20\,Hz velocity. The per-window prediction is the mean of the 20 tokens inside the
+window. An attention-pooled descriptor also feeds a 4-way platform classifier, but this head only exists in the
+training graph; it is never evaluated at inference and nothing downstream depends on it. There is no platform input,
+no routing and no per-platform component anywhere in the network.
+
+The choices made with cross-platform generalisation in mind were: no mean normalisation (see above), bidirectional
+context (bias and tilt are effectively estimated over 16\,s rather than 1\,s), and sampling that gives every platform
+the same number of gradient steps regardless of how many hours of data it has.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/pipeline.pdf}
-    \caption{Overview of the method. One network, one weight set; the auxiliary platform head is discarded at inference.}
+    \caption{The pipeline. One network and one weight set for all platforms; the platform head in the dashed box is
+    used only as a training signal.}
     \label{fig:method_overview}
 \end{figure}
 
 \subsection{Data Processing}
-Windows are used exactly as defined ($k{\cdot}200$ to $(k{+}1){\cdot}200$); trajectories are kept whole in memory
-and training samples are random 16-window chunks (edge-padded and loss-masked when a trajectory is shorter).
-Dense 20\,Hz targets are the 10-sample means of \texttt{vel\_body}. Augmentation, all on device and per chunk:
-\textbf{sensor re-mount rotation} (uniform random axis, angle $U(0,15^\circ)$; $U(0,45^\circ)$ for drone chunks)
-applied identically to accelerometer, gyroscope and target velocity, i.e.\ an exact re-mounting;
-\textbf{time dilation} by $s\sim\log U(1/1.3,1.3)$: the chunk is resampled, $v\!\to\!sv$, $\omega\!\to\!s\omega$
-and the dynamic acceleration $\to s^{2}$ while the gravity component (from the training quaternion) is kept;
-accelerometer scale $1{+}\mathcal N(0,0.02)$, bias $\mathcal N(0,0.15\,\mathrm{m/s^2})$, gyroscope scale
-$1{+}\mathcal N(0,0.02)$, bias $\mathcal N(0,0.02\,\mathrm{rad/s})$, white noise $\sigma{=}0.05$ / $0.004$.
-No filtering, resampling or calibration is applied at inference.
+Windows are used exactly as the organisers define them (window $k$ is \texttt{imu[200k:200k+200]}). Whole
+trajectories are kept in memory and a training sample is a random 16-window chunk of one trajectory; trajectories
+shorter than 16 windows are padded by repeating the last sample and the padded windows are masked out of the loss.
+The 20\,Hz targets are 10-sample means of \texttt{vel\_body}. No filtering, resampling, bias correction or
+calibration is applied, at training or at test time.
+
+Augmentation is applied on the GPU, per chunk. (a) \emph{Re-mounting the sensor}: a random rotation (uniform axis,
+angle uniform in $[0, 15^\circ]$, or $[0, 45^\circ]$ for drone chunks) is applied to the accelerometer, the
+gyroscope and the velocity label alike, which is exactly what a differently mounted sensor would have measured.
+(b) \emph{Time dilation}: the chunk is resampled by a factor $s\sim\log U(1/1.3, 1.3)$; the velocity label and the
+gyroscope are scaled by $s$, and the dynamic part of the acceleration by $s^2$, while the gravity part, which we
+know from the training quaternion, is kept. This produces realistic faster and slower versions of every flight.
+(c) Sensor errors: accelerometer scale $1+\mathcal N(0,0.02)$ and bias $\mathcal N(0, 0.15\,\mathrm{m/s^2})$,
+gyroscope scale $1+\mathcal N(0,0.02)$ and bias $\mathcal N(0, 0.02\,\mathrm{rad/s})$, white noise of
+$0.05\,\mathrm{m/s^2}$ and $0.004\,\mathrm{rad/s}$.
 
 \subsection{Training Data}
-Only the official challenge data was used (Table~\ref{tab:datasets}). Model selection used the released
-\texttt{train}/\texttt{val} split (395/80 trajectories); the final model was refit on train+val with the schedule
-fixed by the val experiments. No external data, synthetic data, pretrained checkpoints or pseudo-labels.
-Test information was never used: test files were read only by the inference script.
+Table~\ref{tab:datasets} lists everything that was used. There is nothing beyond the challenge data: no external
+datasets, no synthetic data, no pretrained weights (including the released baseline) and no pseudo-labels. During
+model development the released \texttt{train} split (395 trajectories) was used for training and the released
+\texttt{val} split (80 trajectories) only for scoring. The final model was refit on the union with the schedule
+that had been fixed on \texttt{val}. Test files were opened only by the inference script.
 \begin{table}[htbp]
     \centering\footnotesize
     \caption{Datasets used for model development and training.}
-    \begin{tabular}{p{2.3cm} p{1.6cm} p{3.4cm}}
+    \begin{tabular}{p{2.3cm} p{1.5cm} p{3.6cm}}
         \toprule Dataset & Type & Usage \\ \midrule
-        Challenge \texttt{train} & Official & Training of all selection runs \\
-        Challenge \texttt{val} & Official & Model/recipe selection (never trained on in selection runs); folded into the final refit \\
+        Challenge \texttt{train} (395 traj.) & Official & Training in all selection runs; training of the final model \\
+        Challenge \texttt{val} (80 traj.) & Official & Scoring of selection runs (never trained on there); added to training for the final refit \\
         \bottomrule
     \end{tabular}
     \label{tab:datasets}
 \end{table}
 
 \subsection{Training and Optimization}
-Loss: $L = L_{\mathrm{win}} + 0.5\,L_{\mathrm{dense}} + 0.2\,L_{\mathrm{drift}} + 0.05\,L_{\mathrm{plat}}$, where
-$L_{\mathrm{win}}$ is a vector Huber ($\beta{=}0.25$\,m/s) on the per-window mean velocity, $L_{\mathrm{dense}}$
-the same on the 20\,Hz output, $L_{\mathrm{drift}}=\frac1T\sum_t \lVert\sum_{k\le t}(\hat v_k - v_k)\rVert/\sqrt t$
-an integrated body-frame error mirroring ATE$_{20}$'s sensitivity to correlated bias, and $L_{\mathrm{plat}}$ the
-auxiliary cross-entropy. AdamW ($\beta{=}0.9/0.99$, weight decay 0.02), OneCycle (peak $1.5{\times}10^{-3}$,
-8\,\% warm-up), batch 64 chunks, 250 steps/epoch, gradient clipping 2.0, EMA of the weights (0.998) and a uniform
-average of the EMA weights over the last 20 epochs (SWA). Sampling: platform uniform, then trajectory uniform
-within the platform. Selection runs: 60 epochs; final refit: 160 epochs, single stage, no curriculum, no
-fine-tuning, no platform-specific specialization. The final checkpoint is the SWA weights at the end of the fixed
-schedule -- no early stopping is possible because val is inside its training set. Hardware: Apple M5 laptop GPU for
-all selection runs (1.9--3\,min/epoch); the ranked checkpoint was trained by a Kaggle script kernel on a Kaggle
-GPU in 3.6\,h.
+The loss is
+$L = L_{\mathrm{win}} + 0.5\,L_{\mathrm{dense}} + 0.2\,L_{\mathrm{drift}} + 0.05\,L_{\mathrm{plat}}$.
+$L_{\mathrm{win}}$ is a Huber loss ($\beta = 0.25$\,m/s) on the Euclidean norm of the per-window velocity error,
+which is the AVE up to the Huber knee; $L_{\mathrm{dense}}$ is the same loss on the 20\,Hz output;
+$L_{\mathrm{drift}} = \frac{1}{T}\sum_{t}\lVert\sum_{k\le t}(\hat v_k - v_k)\rVert / \sqrt{t}$ penalises the
+accumulated body-frame error inside the chunk, which is the kind of correlated bias that ATE$_{20}$ measures and a
+per-window loss does not see; $L_{\mathrm{plat}}$ is the cross-entropy of the auxiliary platform head. The weights
+were set by hand at the start and never tuned.
+
+We use AdamW ($\beta_1{=}0.9$, $\beta_2{=}0.99$, weight decay 0.02), a OneCycle schedule with peak learning rate
+$1.5\times10^{-3}$ and 8\,\% warm-up, batches of 64 chunks, 250 optimiser steps per epoch and gradient clipping at
+2.0. An exponential moving average of the weights (decay 0.998) is kept during training, and the final weights are
+the plain average of the EMA weights taken at the end of each of the last 20 epochs. Sampling: a platform is drawn
+uniformly, then a trajectory uniformly within that platform, then a random chunk position. Selection runs lasted 60
+epochs; the final refit 160 epochs. Training is a single stage; there is no curriculum, no fine-tuning, no domain
+adaptation and no platform-specific specialisation. The final checkpoint is simply the averaged weights at the end
+of the fixed schedule -- with \texttt{val} inside the training set there is nothing to select on, and we did not
+want to select on the leaderboard (Sec.~\ref{sec:selection}). Selection runs were trained on an Apple M5 laptop GPU
+(about 2--3\,min per epoch); the ranked checkpoint was trained by a Kaggle script kernel on a Tesla T4 in 3.6\,h.
 
 \subsection{Inference}
-For each test trajectory, 16-window chunks slide with a stride of 2 windows; each chunk is run once; per-window
-outputs are averaged across overlapping chunks with a raised-cosine weight (+0.05 floor) so a window is trusted most
-from the chunk in which it is central. Trajectories shorter than 16 windows are edge-padded and the padding
-discarded. Trajectories are processed independently. No TTA, no ensembling, no scaling, smoothing or clipping, no
-test-time adaptation. Inference uses past and future context of the same trajectory (offline).
+For each test trajectory we read only the \texttt{imu} array and the window order. Chunks of 16 windows are slid
+over the trajectory with a stride of 2 windows; every chunk is passed through the network once; the per-window
+outputs of overlapping chunks are averaged with a raised-cosine weight (plus a small floor) so that a window is
+trusted most from the chunk in which it lies near the centre. Trajectories shorter than 16 windows are padded by
+repeating the last sample and the padding is discarded afterwards. Trajectories are never concatenated. There is no
+test-time augmentation, no ensembling, no scaling, clipping, smoothing or calibration, and no test-time adaptation.
+The method is offline: it uses past and future samples of the same trajectory.
 
 \subsection{Model Complexity and Runtime}
-Table~\ref{tab:runtime}. The method is offline (bidirectional); a causal variant would need a different design.
+Table~\ref{tab:runtime} gives the numbers. The whole 89-trajectory test set takes 26\,s on a Tesla T4; on a 10-core CPU the same run takes 30\,min because of the 8-fold chunk overlap. The method as submitted is not causal; a
+causal variant would need a different context design and we did not build one.
 \begin{table}[htbp]
     \centering\footnotesize
-    \caption{Model complexity and runtime statistics.}
+    \caption{Model complexity and runtime statistics (ranked entry).}
     \begin{tabular}{p{2.6cm} p{5.2cm}}
         \toprule Property & Value \\ \midrule
         Number of parameters & 3.9\,M (second entry: 1.8\,M) \\
-        Training hardware & Kaggle GPU (ranked run); Apple M5 laptop GPU (selection runs) \\
-        Training time & 3.6\,h (160 epochs $\times$ 250 steps $\times$ 64 chunks) \\
-        Inference hardware & any single GPU ($<$2\,GB VRAM) or CPU \\
-        Inference speed (Hz) & $\approx$500 windows/s on a laptop GPU (whole test set $<$1\,min); CPU: tens of minutes \\
-        Peak memory & $<$2\,GB GPU; $\approx$3\,GB RAM \\
+        Training hardware & Kaggle Tesla T4 (ranked run); Apple M5 laptop GPU (all selection runs) \\
+        Training time & 3.6\,h for 160 epochs $\times$ 250 steps $\times$ 64 chunks \\
+        Inference hardware & one GPU with $<$2\,GB of memory, or CPU \\
+        Inference speed (Hz) & $\approx$1{,}200 windows/s on a Tesla T4 (all 30{,}644 test windows in 26\,s including loading); $\approx$17 windows/s on a 10-core laptop CPU (30\,min) \\
+        Peak memory & $<$2\,GB GPU; $\approx$2\,GB RAM (whole test set loaded) \\
+        Online / real time & no (offline, bidirectional context) \\
         \bottomrule
     \end{tabular}
     \label{tab:runtime}
 \end{table}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Development Experiments}
 \label{sec:devexp}
-All numbers below are val scores (organizers' scorer, 80 held-out trajectories) of models trained on
-\texttt{train} only, unless stated. Fig.~\ref{fig:val_curves} shows the curves.
+Unless stated otherwise, the numbers in this section are TartanIMU scores on the held-out \texttt{val} split (80
+trajectories, organisers' scorer) of models trained on \texttt{train} only. Fig.~\ref{fig:val_curves} shows the
+training curves of the main runs.
 
-\textbf{Context is the largest gain.} A per-window 1D ResNet in the style of the public starter kernel reaches
-$\approx$0.30; our first 16\,s-context model (width 128, 30 epochs) reached \textbf{0.2247}. A 32\,s context with
-a wider trunk was \emph{worse} at equal epochs (0.2293), so 16\,s was kept.
+\emph{Architectures.} We started from the per-window 1-D ResNet of the public starter kernel, which reaches about
+0.30 on val. Our first context model (width 128, 2-layer transformer, 16\,s chunks, 30 epochs) reached 0.2247; that
+single change is by far the largest gain we saw. A wider trunk with 32\,s chunks was worse at the same number of
+epochs (0.2293), so 16\,s stayed. A bidirectional GRU in place of the transformer gave the same accuracy but was three
+times slower on our hardware. Widening the trunk to 192 channels and three transformer layers, at 60 epochs, improved
+val from 0.2030 to 0.1987; the improvement was spread evenly over the platforms.
 
-\textbf{Longer schedules.} The same recipe for 60 instead of 30 epochs: 0.2233$\to$\textbf{0.2030}
-(drone-B AVE 0.328$\to$0.271, car 0.129$\to$0.117, human 0.085$\to$0.073). On the public leaderboard the
-train+val refits went 0.3625 (30 ep) $\to$ 0.3466 (60) $\to$ 0.2975 (100) $\to$ 0.2870 (160); 240 epochs gave no
-further gain (0.2897).
+\emph{Schedule length.} The same recipe trained for 60 instead of 30 epochs went from 0.2233 to 0.2030 (drone-B AVE
+0.328$\to$0.271\,m/s, car 0.129$\to$0.117, human 0.085$\to$0.073). On the public leaderboard the train+val refits
+went 0.3625 (30 epochs), 0.3466 (60), 0.2975 (100), 0.2870 (160); a 240-epoch run of the wide model did not improve
+further (0.2897).
 
-\textbf{Metric-shaped sampling.} Sampling trajectories uniformly within a platform instead of proportionally to
-length: 0.2030$\to$\textbf{0.1982}, with the largest effect on the short, hard drone trajectories -- the metric
-averages per trajectory, so short trajectories count as much as long ones.
+\emph{Sampling.} Drawing trajectories uniformly within a platform instead of in proportion to their length took val
+from 0.2030 to 0.1982. The metric averages per trajectory, so a 13-window drone clip counts as much as a 35-minute
+car drive; length-proportional sampling had been under-training exactly the short clips that carry most of the error.
+Raising the drone share of the sampling to 40\,\% (0.2013) or adding a vibration-amplitude augmentation (0.2065) was
+worse than plain uniform sampling. The ranked entry combines uniform sampling with the wider trunk; we did not have time to validate
+that combination as a separate 60-epoch run, so its only scores are those of the train+val refit itself (0.2861 public,
+0.219 full test).
 
-\textbf{Model scale.} Width 192 with a 3-layer transformer instead of 128/2: 0.2030$\to$0.1987 on val, but the
-corresponding train+val refits scored 0.2893 and 0.2861--0.2876 publicly versus 0.2870 for the narrow model,
-i.e.\ within leaderboard noise (Sec.~\ref{sec:selection}). Scale helped every platform slightly and hurt none.
+\emph{Drone-targeted augmentation.} Rotations up to $45^\circ$ for drone chunks, a fourfold oversampling of the
+racing-drone source and time dilation together moved val from 0.2247 to 0.2233, but the racing-drone trajectories
+themselves did not move at all (AVE 0.674$\to$0.676\,m/s). That was the first hint that their error is not a matter
+of training signal.
 
-\textbf{Drone-targeted augmentation.} Rotations up to 45$^\circ$ for drone chunks, $\times$4 oversampling of the
-racing-drone source and time dilation: 0.2247$\to$0.2233 overall but \emph{no change} on the racing-drone
-trajectories (AVE 0.674$\to$0.676). Increasing the drone sampling share to 40\,\% (0.2013) and vibration-amplitude
-augmentation (0.2065) were both worse than uniform sampling (0.1982).
+\emph{Things that did not work.} The strap-down features on their own gave no measurable gain: integrating the raw
+gyroscope over 16\,s drifts by 5--20\,m/s because of uncompensated bias, so the network's own short-horizon
+integration is already better (we kept the features because they cost nothing). A learned per-chunk time-shift
+head, supervised with IMU-to-ground-truth offsets we measured on the training set, predicted the offsets of unseen
+recordings well (for example $-66$ and $-48$\,ms predicted against $-40$ and $-70$\,ms measured) but did not improve
+the score. Rotation test-time augmentation (0.2246 against 0.2247), a 3-window moving average (ATE worse on every
+platform) and a denser overlap at inference (identical) changed nothing. Averaging the predictions of two to four
+runs improved val to 0.2171 and the public score to 0.354 from 0.363, but that is not a single weight set and none of
+our ranked entries uses it.
 
-\textbf{Things that did not work} (cost in parentheses): raw strap-down features alone gave no measurable gain --
-16\,s integration drifts by 5--20\,m/s under uncompensated gyro bias, so the network's implicit short-horizon
-integration is already better (2\,h); a learned per-chunk IMU$\leftrightarrow$ground-truth \emph{time-shift head},
-supervised by measured offsets, predicted the offsets of unseen recordings well ($-66$/$-48$\,ms predicted vs
-$-40$/$-70$ measured) but did not improve the score (2\,h); rotation TTA (0.2246 vs 0.2247), 3-window smoothing
-(ATE worse on every platform), denser overlap (identical), a bidirectional GRU context module (same accuracy,
-3$\times$ slower on our hardware). Prediction averaging of 2--4 runs improved val to 0.2171 and public to 0.354
-(from 0.363) but is not a single weight set and was not used for any ranked entry.
+Overall, more epochs and better sampling helped every platform; nothing we tried helped one platform at the expense
+of another; and model scale helped a little on val but did not show on the leaderboard.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/val_curves.pdf}
-    \caption{Validation score and drone AVE during training for the main selection runs (train only, scored on the
-    held-out val split every 2--4 epochs).}
+    \caption{Val score (left) and val drone AVE (right) during training for the main selection runs. All runs are
+    trained on \texttt{train} only and scored on the held-out \texttt{val} split every 2--4 epochs.}
     \label{fig:val_curves}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments}
 \subsection{Official Challenge Performance}
-Tables~\ref{tab:overall_results}--\ref{tab:sequence_results} were produced by the official scoring service for the
-CSV of our ranked Kaggle submission 56402554, \texttt{md5 = \textbf{fd12d4f25d7b52d44aaa4e4a14534378}}
-(scored under the team's pre-rename Kaggle name ``Md.\ Hamid Hosen''; the team was renamed Hack2Publish on 21 Sept.
-and the service's whitelist had not yet refreshed). Full-test score \textbf{0.21903}; public leaderboard 0.28609 (rank
-9 of 108 at close). The second selected entry (56332266, md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}) scores 0.22189
-on the same service (AVE 0.181, ATE$_{20}$ 0.581). The drone term carries 64\,\% of our score (Table~\ref{tab:platform_results}):
-AVE is 0.05--0.07\,m/s on car, human and dog but 0.52\,m/s on drone, and ATE$_{20}$ 0.36--0.49\,m versus 1.04\,m.
+Tables~\ref{tab:overall_results}--\ref{tab:sequence_results} come from the official scoring service, run on the CSV
+of our ranked Kaggle submission 56402554, \texttt{md5 = \textbf{fd12d4f25d7b52d44aaa4e4a14534378}}. The service
+still lists our team under its earlier Kaggle name, ``Md.\ Hamid Hosen'' (we renamed the team to Hack2Publish on
+21 September and the whitelist had not refreshed by the time of scoring); the md5 identifies the file regardless.
+The full-test score is 0.21903; the public leaderboard score is 0.28609 (rank 9 of 108 at the close). Our second
+selected entry, submission 56332266 (md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}), scores 0.22189 on the same
+service (AVE 0.181\,m/s, ATE$_{20}$ 0.581\,m). Table~\ref{tab:platform_results} shows where the score comes from:
+AVE is 0.05--0.07\,m/s on car, human and dog and 0.52\,m/s on the drone, ATE$_{20}$ is 0.36--0.49\,m against
+1.04\,m, and the drone term alone is 64\,\% of our score.
 \input{tables_official.tex}
 
 \subsection{Per-Sequence Results}
-The error is concentrated, not spread (Table~\ref{tab:sequence_results}): a minority of drone sequences -- those of
-the racing-drone source (short, 3--7\,m/s, two IMUs per flight, Sec.~\ref{sec:data}) -- have AVE several times that of
-any other sequence and account for most of the drone term, which itself is 64\,\% of the score. Within the
-other platforms the per-sequence errors are homogeneous (car/dog/human AVE 0.07--0.13\,m/s in val); the slow
-hovering drone sequences have an AVE equal to the standard deviation of their own ground-truth velocity, i.e.\ the
-model predicts the mean and cannot resolve sub-0.2\,m/s hover drift from the IMU.
+Table~\ref{tab:sequence_results} in the appendix lists all 89 sequences. The pattern is a concentration rather than a
+spread. The car, human and dog sequences are uniform: their AVE sits within a narrow band whatever the length or
+speed of the sequence. Among the drone sequences, the ones that belong to the racing-drone source (short, 3--7\,m/s,
+each flight recorded by two IMUs, see Sec.~\ref{sec:data}) have an AVE several times that of any other sequence,
+and a handful of them account for most of the drone term. At the other end, the slowest hovering drone sequences
+have an AVE about equal to the standard deviation of their own ground-truth velocity, which is what one gets by
+predicting the mean: hover drift of less than 0.2\,m/s is simply not visible in the IMU.
 
 \subsection{Ablation Studies}
-Section~\ref{sec:devexp} is our ablation record; in decreasing order of effect on val: trajectory context
-($-$0.08), schedule length ($-$0.02), uniform trajectory sampling ($-$0.005), model scale ($-$0.004), drone
-augmentation ($-$0.001), physics features / time-shift head / TTA / smoothing (0 or negative).
+Section~\ref{sec:devexp} is our ablation record. Ordered by effect on val: trajectory context ($-0.08$), schedule
+length ($-0.02$), uniform trajectory sampling ($-0.005$), model scale ($-0.004$), drone augmentation ($-0.001$);
+strap-down features, the time-shift head, test-time augmentation and smoothing gave zero or negative changes.
 
 \subsection{Generalization Analysis}
 \label{sec:data}
-Val (disjoint trajectories) tracks the test set closely: val 0.198 vs 0.219 on the full test set, while the public
-split is much harder (0.286); the organizers' baseline shows the same pattern (0.538 full test vs 0.637 public). The
-difference is explained by the drone split. Fig.~\ref{fig:scatter} shows the per-trajectory val error of our recipe: car, dog and human errors are
-0.07--0.13\,m/s regardless of speed; drone-B (the second drone source) errors are 0.15--0.4\,m/s and, remarkably,
-\emph{lower} at 3--4\,m/s than when hovering; drone-A (racing drone) errors are 0.45--1.0\,m/s at every speed.
+The held-out val split predicted the test set well: 0.198 on val against 0.219 on the full test set. The public
+split is a different matter, 0.286, and the organisers' baseline shows the same gap (0.538 full test, 0.637
+public). Everything about this gap is in the drone data. Fig.~\ref{fig:scatter} plots the per-trajectory val error
+of our recipe against the mean speed of the trajectory. Car, dog and human sit at 0.07--0.13\,m/s regardless of
+speed. Drone-B, the second drone source, sits at 0.15--0.4\,m/s, and its error is actually lower at 3--4\,m/s than
+when hovering. Drone-A, the racing drone, sits at 0.45--1.0\,m/s at every speed.
 
-Two data findings explain this, both measured on the released train/val files.
-\emph{(1)~Frame convention of drone-B.} Its gyroscope $z$ axis is inverted relative to the quaternion/velocity
-body frame (ground-truth yaw rate $= -\omega_z$, $R^2{=}0.97$), and its accelerometer dynamics match the
-ground-truth specific force under no axis relabelling ($R^2{<}0$ at 2\,Hz, unconstrained fits give axis gains of
-0.6--2.1), whereas the other three platforms and drone-A have identity conventions with $R^2$ 0.97--0.99. The
-network still learns drone-B well because the source is trivially identifiable from the signal (high-frequency
-accelerometer content differs by 10$\times$), but the physics it learns there does not transfer to drone-A, which
-has only $\approx$30\,min of data.
-\emph{(2)~Racing-drone recordings.} Every fast flight appears twice, recorded by two IMUs (one level, one pitched
-$\approx$45$^\circ$, e.g.\ \texttt{drone\_val\_0005/0006}). Their IMU streams are offset from the ground truth by
-\emph{different} amounts ($\approx-10$\,ms for one IMU type, $-40\ldots-70$\,ms for the other, measured by
-cross-correlating $|\omega|$ with the quaternion-derived rate), and after time alignment and the best-fit
-rotation the two recordings' velocity targets still disagree by 0.15--0.9\,m/s ($\approx$5$^\circ$ of mount
-inconsistency at 4--7\,m/s). This is a floor on that source that no IMU-only model can pass, and about a quarter of
-the test drone trajectories are of this type. Several dog trajectories also have offsets of 40--150\,ms.
-We found no evidence of negative transfer between platforms: every platform improved with every improvement of
-the shared recipe, and removing a platform never helped another.
+We spent a good part of the last week trying to understand drone-A and found two things, both measured on the
+released training and validation files.
+
+\emph{Frame conventions.} Drone-B's gyroscope $z$ axis is inverted with respect to the body frame of its quaternion
+and velocity: the ground-truth yaw rate equals $-\omega_z$ with $R^2 = 0.97$. Its accelerometer does not match the
+ground-truth specific force under any relabelling of the axes either (the $R^2$ at 2\,Hz is negative; an
+unconstrained $3\times3$ fit gives axis gains between 0.6 and 2.1). The other three platforms and drone-A have
+identity conventions with $R^2$ between 0.97 and 0.99. The network copes with drone-B because the source is easy to
+recognise from the signal (its high-frequency accelerometer content is ten times lower), but whatever it learns about
+physics on drone-B's 3.4 hours does not carry over to drone-A, which has about 30 minutes of data.
+
+\emph{The racing-drone recordings.} Every fast flight of drone-A appears twice, recorded by two different IMUs, one
+level and one pitched by about $45^\circ$ (e.g.\ \texttt{drone\_val\_0005} and \texttt{0006}). Cross-correlating
+$|\omega|$ with the angular rate derived from the quaternions shows that the two IMU streams are offset from the
+ground truth by different amounts, about $-10$\,ms for one IMU type and $-40$ to $-70$\,ms for the other. After
+aligning the two recordings in time and fitting the best rotation between them, their velocity labels still disagree
+by 0.15--0.9\,m/s, which corresponds to roughly $5^\circ$ of inconsistency in the mounting at 4--7\,m/s. No model
+that sees only the IMU can do better than that disagreement on this source, and about a quarter of the test drone
+trajectories are of this type. Several dog trajectories also have offsets of 40--150\,ms, but at dog speeds these
+cost little.
+
+We saw no negative transfer between platforms. Every improvement of the shared recipe improved every platform, and
+removing one platform from training never helped another.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.9\linewidth]{figures/val_scatter.pdf}
-    \caption{Per-trajectory val AVE of the final recipe (train-only run) against mean speed. The racing-drone
-    source is an outlier at every speed; the slowest drone-B sequences sit at the floor set by hover drift.}
+    \caption{Per-trajectory val AVE of the final recipe (train-only run) against the mean ground-truth speed of the
+    trajectory. The racing-drone source is an outlier at every speed; the slowest drone-B sequences sit at the floor
+    set by hover drift.}
     \label{fig:scatter}
 \end{figure}
 
 \subsection{Failure-Mode Analysis}
-(i)~Racing-drone flights: errors of 0.5--1\,m/s that are bias-like per recording, consistent with the timing and
-mount inconsistencies above. (ii)~Slow hover: velocity variations of $\pm$0.15\,m/s at 0.1\,Hz produce
-$\approx$0.1\,m/s$^2$ of acceleration under 4--6\,m/s$^2$ of vibration -- unobservable. (iii)~Fast cars ($>$3\,m/s,
-25 windows in val) have errors of 3--4\,m/s: this regime does not exist in the training data. Unresolved: a
-principled way to make the drone-B convention consistent with the rest of the data (it is not a fixed axis
-relabelling), and any use of the two-IMU redundancy.
+The failures we can name are these. Racing-drone flights: errors of 0.5--1\,m/s that look like a bias per
+recording, consistent with the timing and mounting inconsistencies above. Slow hover: a velocity oscillation of
+$\pm 0.15$\,m/s at 0.1\,Hz produces about $0.1\,\mathrm{m/s^2}$ of acceleration underneath 4--6\,$\mathrm{m/s^2}$ of
+vibration, and the network predicts the mean. Fast cars: the 25 val windows above 3\,m/s have errors of 3--4\,m/s,
+because nothing in the training data drives that fast. Two things remain open: a principled way to bring drone-B's
+sensor convention in line with the rest of the data (it is not a simple relabelling of axes, so we could not
+canonicalise it), and any use of the fact that each racing flight is recorded twice.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Insights and Lessons Learned}
 \label{sec:insights}
-\textbf{A single universal model is feasible for the part of the problem that is observable.} One 3.9\,M-parameter
-network with no platform input reaches 0.07--0.13\,m/s AVE on car, dog and human and $\approx$0.27\,m/s on ordinary
-drone flight, and every change that helped one platform helped the others. The embodiment is inferred implicitly
-and reliably; specialization was never needed. \textbf{The bottleneck is data quality and observability, not the
-model.} Our largest remaining error comes from a source whose labels are internally inconsistent at the level of
-tens of milliseconds and a few degrees; more capacity, more epochs and more augmentation all left it untouched,
-while everything else kept improving. \textbf{Context transfers; conventions do not.} Reading whole trajectories,
-metric-shaped sampling and physically exact augmentation are sensor- and platform-agnostic and should transfer to
-other IMUs and vehicles; anything learned about a specific source's axis convention or timing offset will not.
-\textbf{Per hour of data, slow-and-clean beats fast-and-noisy}: 30\,min of racing-drone data contributed almost
-nothing to generalization, while the drone-B hours drove the drone-B error down steadily. \textbf{Evaluation.} With
-$\sim$45 drone test trajectories averaged per trajectory, a public split is dominated by a few short racing flights;
-we measured $\pm$0.01--0.02 leaderboard differences between identical recipes. Promising directions: physics-informed
-architectures that estimate bias, gravity and time offset explicitly with uncertainty; self-supervised consistency
-between the two IMUs of the same flight; and datasets with verified time synchronization.
+Is a single universal inertial model feasible? For the part of the problem that is observable, yes, and without any
+specialisation. One 3.9\,M-parameter network with no platform input gets 0.05--0.07\,m/s AVE on three platforms and
+around 0.27\,m/s on ordinary drone flight, it identifies the embodiment on its own, and every change that helped one
+platform helped the rest. We never found a reason to add a platform-specific component.
+
+Where is the bottleneck? Not in the model. The single largest remaining error comes from one drone source whose
+labels are inconsistent with each other at the level of tens of milliseconds and a few degrees. More capacity, more
+epochs and more augmentation left that error where it was while everything else kept improving. The second largest
+remaining error, hover drift, is a limit of the sensor, not of the learning.
+
+What transfers? Reading whole trajectories, sampling the way the metric averages, and augmentation that respects
+the sensor physics do not depend on any particular IMU or vehicle and should carry over to other platforms and
+datasets. Anything the network has learned about a particular source's axis convention or timing offset will not,
+and in a platform-blind test set with recognisable sources that kind of knowledge is rewarded. Per hour of data,
+the clean and slow drone-B recordings gave far more than the fast and noisy racing-drone recordings: the drone-B
+error kept falling with training, the racing-drone error did not move.
+
+About the evaluation: with 45 drone sequences averaged per trajectory, a public split is dominated by a few short
+racing flights. We measured differences of $\pm$0.01--0.02 on the public leaderboard between runs of the same
+recipe on different GPUs, which is larger than most of the differences we were trying to detect; val, with all its
+windows, was a much better instrument. Directions we would pursue: architectures that estimate bias, gravity and
+time offset explicitly and with an uncertainty; self-supervised consistency between the two IMUs of the same
+flight; and, above all, training data whose synchronisation has been verified.
 
 \subsection{Feedback to the Organizers}
-The rules, metric and starter kit were unusually clear, and the exact scorer in the kit made local validation
-trustworthy (our val floor 0.013 and all-zero 1.015 matched the published references). What cost us the most time
-was discovering the data issues of Sec.~\ref{sec:data} ourselves; documenting per-source conventions, IMU types and
-synchronization quality (or fixing the drone-B gyro sign and the racing-drone offsets) would let teams work on the
-model instead. The metric behaved as documented, but the per-trajectory averaging makes short racing-drone clips
-worth as much as 30-minute car drives, so the public leaderboard is noisy; averaging per window within a platform, or
-a larger public split, would reduce it. The second-IMU duplicates of the same flights should be either merged or
-declared. For the next edition, causal/online evaluation and a held-out platform would measure generalization more
-directly than a platform-blind test set whose sources are identifiable from the signal.
+The rules, the metric and the starter kit were clear, and shipping the exact scorer was the single most useful
+thing in the kit: our local val floor (0.013) and all-zero score (1.015) matched the published references, so we
+trusted val throughout. What cost the most time was discovering the drone data properties of Sec.~\ref{sec:data}
+ourselves; a note on per-source conventions, IMU types and synchronisation quality (or a fix of the drone-B
+gyroscope sign and the racing-drone offsets) would have let us spend that time on the model. The metric behaved as
+documented, but per-trajectory averaging makes a 13-window drone clip worth as much as a 35-minute drive, and that is
+what makes the public leaderboard noisy; a per-window average within a platform, or a larger public split, would
+help. We would also suggest either merging or declaring the second-IMU duplicates of the racing flights. Finally,
+because the sources are recognisable from the signal, a platform-blind test set measures source recognition as much
+as generalisation; a genuinely held-out platform, or a causal evaluation track, would measure the latter more
+directly.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-A trajectory-context network trained with a metric-shaped sampler and physically exact augmentation gives a single
-unified inertial velocity estimator that is accurate on three of the four platforms and on ordinary drone flight,
-reaching 0.219 on the full test set (0.286 on the harder public split, from our own starting point of 0.553) with one
-weight set and no post-processing. The remaining error is dominated by one drone source whose ground truth is internally inconsistent;
-closing it requires better data, or models that estimate synchronization and mounting explicitly.
+A context network over whole trajectories, trained with a sampler that mirrors the metric and with physically exact
+augmentation, gives a single unified inertial velocity estimator with one set of weights and no post-processing. It
+scores 0.219 on the full test set and 0.286 on the harder public split, up from our own starting point of 0.553.
+What remains is dominated by one drone source whose ground truth disagrees with itself; closing that gap needs
+better data, or models that estimate synchronisation and mounting explicitly.
 
 \section*{ACKNOWLEDGMENT}
-We thank the CMU AirLab organizers for the dataset, the exact scorer and the scoring service, and Kaggle and Google
-Colab for compute. The AI assistant Claude (Anthropic) was used for code development and analysis under the
-authors' direction.
+We thank the CMU AirLab team for the dataset, the exact scorer and the scoring service, and Kaggle and Google Colab
+for the compute. The code and analysis were developed with the help of the AI assistant Claude (Anthropic), under
+the authors' direction.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{APPENDIX}
 \subsection{Per-Sequence Results (Full Table)}
 \input{tables_sequences.tex}
@@ -329,47 +382,59 @@ authors' direction.
 \subsection{Reproducibility and Submission Artifacts}
 \label{sec:selection}
 \begin{sloppypar}\raggedright
-Kaggle team \textbf{Hack2Publish}. Ranked submission \textbf{56402554} (\texttt{submission\_final\_kaggle\_w\_uni.csv},
-2026-09-20 17:34 UTC, md5 \texttt{fd12d4f25d7b52d44aaa4e4a14534378}, public 0.28609). Second selected entry
-\textbf{56332266} (\texttt{submission\_final\_v4\_160.csv}, md5 \texttt{97a6e86dba7dfc19929e050bef5857b0},
-public 0.28696): the width-128 / 2-layer variant trained on an Apple M5 with length-weighted sampling.
-Code: the GitHub repository below (training commit \texttt{a9a5384}; the Kaggle kernel script that trained the ranked checkpoint is in
-\texttt{kaggle\_kernel/}). Checkpoints: the Hugging Face repository below -- \texttt{model.pt}
-(SHA-256 \texttt{69764745d0589eba846d571b364aa3d3\allowbreak 3fe6a25be5e516879339b3231ceeb9b1}) and
-\texttt{model\_secondary\_final\_v4\_160.pt} (\texttt{f1eb2086\ldots}), with \texttt{infer.py}, \texttt{model.py},
-pinned \texttt{requirements.txt} (torch 2.14.0, numpy 2.5.2, pandas 3.0.5) and \texttt{SHA256SUMS}; the exact argparse
-configuration is stored inside each checkpoint and in \texttt{configs/}. Seed 0; every reported score is a single run.
-Run-to-run spread: the identical recipe trained on two different GPUs scored 0.2870 and 0.3052 publicly, and the
-ranked recipe 0.2861 (Kaggle GPU) vs 0.2876 (laptop). Inference reproduces the submitted CSV to $\le$0.005\,m/s per
-window across devices (TF32 disabled).
+\textbf{Team and submissions.} Kaggle team \textbf{Hack2Publish}. Ranked submission \textbf{56402554}
+(\texttt{submission\_final\_kaggle\_w\_uni.csv}, 2026-09-20 17:34 UTC, md5 \texttt{fd12d4f25d7b52d44aaa4e4a14534378},
+public 0.28609, full test 0.21903). Second selected entry \textbf{56332266} (\texttt{submission\_final\_v4\_160.csv},
+2026-09-18 08:17 UTC, md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}, public 0.28696, full test 0.22189), the
+width-128 / 2-layer variant trained on the laptop with length-proportional sampling.
 
-\noindent\textbf{Compliance declaration.}
+\textbf{Code.} GitHub repository \ghrepo, training commit \texttt{a9a5384}; the Kaggle kernel script that trained the
+ranked checkpoint is in \texttt{kaggle\_kernel/}.
+
+\textbf{Checkpoints.} Hugging Face repository \hfrepo. \texttt{model.pt} (ranked entry; md5 \texttt{737c12af68ea4ad6aa419a72e92bad4d},
+SHA-256 \texttt{69764745\ldots}) and \texttt{model\_secondary\_final\_v4\_160.pt} (second entry; md5
+\texttt{9ea78ce8819b5212d9d7983875f8ad42}). The exact argparse configuration is stored inside each checkpoint and in \texttt{configs/}.
+Full checksums are in \texttt{SHA256SUMS}.
+
+\textbf{Environment.} Python 3.12, PyTorch 2.14.0, NumPy 2.5.2, pandas 3.0.5, as pinned in \texttt{requirements.txt};
+inference needs no other package and no internet access.
+
+\textbf{Hardware and time.} Ranked checkpoint: Kaggle Tesla T4, 3.6\,h. Inference: the whole test set in 26\,s on a T4, 30\,min on a 10-core CPU.
+
+\textbf{Seeds and spread.} Seed 0 everywhere; every reported score is a single run. The run-to-run spread on the
+public leaderboard is large: the same recipe trained on two different GPUs scored 0.2870 and 0.3052, and the ranked
+recipe scored 0.2861 on the Kaggle GPU and 0.2876 on the laptop. Inference itself is deterministic up to device
+arithmetic; re-running \texttt{infer.py} on another device reproduces the submitted CSV to within 0.005\,m/s per
+window (TF32 disabled).
+
+\textbf{Compliance declaration.}
 \begin{enumerate}
-    \item \textbf{Yes.} All predictions come from a single model with one shared set of weights.
-    \item \textbf{No} platform classification, routing or specialization at inference. An auxiliary platform head
-    exists in the training graph only; its output is never computed at inference and nothing depends on it.
-    \item \textbf{No} model ensembling and \textbf{no} test-time augmentation. Weight averaging within a single run
-    only: EMA of the weights during training and a uniform average of the EMA weights over the last 20 epochs.
-    \item Test data was read only by the inference script. All architecture and hyper-parameter choices were made
-    on the released \texttt{val} split with the organizers' scorer; the final model is a fixed-schedule refit on
-    train+val with no checkpoint selection. Among the finished refits, the two Kaggle entries were chosen by
-    val-validated recipe first and public score second; no training or post-processing was tuned against the
-    leaderboard.
-    \item The development-time system and the submitted system are identical. The only differences between the
-    ranked and the second entry are the trunk width / transformer depth and the sampling weights, as stated above.
+    \item Yes. All ranked predictions come from a single model with one shared set of weights.
+    \item No platform classification, routing or specialisation is used at inference. A platform classification
+    head exists in the training graph only; at inference its output is not computed and nothing depends on it.
+    \item No model ensembling and no test-time augmentation. The only weight averaging is inside one training run:
+    an EMA of the weights during training and the plain average of the EMA weights over the last 20 epochs.
+    \item The test data was read only by the inference script. Architecture and hyper-parameters were chosen on
+    the released \texttt{val} split with the organisers' scorer, and the final model is a fixed-schedule refit on
+    train+val with no checkpoint selection. Among the finished refits we chose the two Kaggle entries by
+    val-validated recipe first and public score second; nothing in training or post-processing was tuned against the
+    leaderboard, and no test information was used in any other way.
+    \item The development-time system and the submitted system are identical. The ranked and the second entry
+    differ only in trunk width, transformer depth and the sampling weights stated above.
 \end{enumerate}
 \end{sloppypar}
 
 \subsection{Final Predictions}
-The ranked CSV (30,644 rows, columns \texttt{window\_id,vx,vy,vz}, md5 above) is attached to the Submission Form and
-is regenerated bit-exactly on the training device from the Hugging Face repository by\\
-\texttt{python infer.py --traj\_dir test \allowbreak --windows index/test\_windows.csv \allowbreak --out submission.csv}. No post-processing is applied after
-the network output beyond the overlap averaging described in Sec.~II-E; there are no missing or degenerate windows.
+The ranked CSV (30,644 rows, header \texttt{window\_id,vx,vy,vz}, md5 above) is the file attached to the Submission
+Form. It is regenerated from the Hugging Face repository by\\
+\texttt{python infer.py --traj\_dir test \allowbreak --windows index/test\_windows.csv \allowbreak --out submission.csv}\\
+(bit-exact on the training device). Nothing is applied after the network output except the overlap averaging of
+Sec.~II-E. There are no missing or degenerate windows; every test window receives a prediction.
 
 \subsection{Model and Inference Code}
-Weights, inference entry point, configuration and environment (Hugging Face):\\
+Weights, the inference entry point, the configuration and the pinned environment (Hugging Face):\\
 \hfrepo\\
-Training code, analysis scripts and this report's sources (GitHub):\\
+Training code, analysis scripts and the sources of this report (GitHub):\\
 \ghrepo
 
 \begin{thebibliography}{99}
@@ -384,6 +449,6 @@ S.~Herath, H.~Yan, and Y.~Furukawa, ``RoNIN: Robust Neural Inertial Navigation i
 ICRA}, 2020.
 \bibitem{tlio}
 W.~Liu, D.~Caruso, E.~Ilg, J.~Dong, A.~Angelova, and S.~Belongie, ``TLIO: Tight Learned Inertial Odometry,''
-\emph{IEEE RA-L}, vol.~5, no.~4, 2020.
+\emph{IEEE Robot.\ Autom.\ Lett.}, vol.~5, no.~4, 2020.
 \end{thebibliography}
 \end{document}
