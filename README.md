@@ -1,8 +1,27 @@
-# TartanIMU Challenge — Multi-Platform Inertial Odometry
+# TartanIMU Challenge — Multi-Platform Inertial Odometry (team Hack2Publish)
+
+**Team Hack2Publish** — Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto.
 
 Predict the mean 3-D **body-frame velocity** of every 1 s window (200 Hz, 6-axis IMU) with **one model** shared
 across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, macro-averaged over platforms
-(lower is better; all-zero = 1.0). Competition: https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026
+(lower is better; all-zero = 1.0).
+
+| | |
+| --- | --- |
+| Competition | https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026 (IROS 2026 workshop *Beyond Exteroception*) |
+| **Model weights + inference (Hugging Face)** | **https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42** |
+| Result | public leaderboard **0.2861** (rank 9 / 131 at close); official full-test score **0.219** (organisers' baseline 0.538) |
+| Technical report | [`Hack2Publish_TartanIMU_report.pdf`](Hack2Publish_TartanIMU_report.pdf) · paper draft [`Hack2Publish_paper_draft.pdf`](Hack2Publish_paper_draft.pdf) |
+
+## Quick start (inference only)
+
+```bash
+pip install torch==2.14.0 numpy==2.5.2 pandas==3.0.5 huggingface_hub
+huggingface-cli download mdhamidhosen/tartanimu-unified-hosen42 --local-dir tartanimu_model
+cd tartanimu_model
+python infer.py --traj_dir /path/to/test --windows /path/to/index/test_windows.csv --out submission.csv
+```
+Reads only the `imu` array of each trajectory; one GPU (<2 GB) does the 89-trajectory test set in ~30 s, a CPU in ~30 min.
 
 ## Layout
 
@@ -16,12 +35,13 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | `analysis.py` → `analysis/` | EDA: inventory, target/IMU statistics, temporal autocorrelation, test composition, figures, `summary.md` |
 | `model.py` | `IMUNet` (conv stem → dilated TCN → transformer context → dense 20 Hz velocity) + sliding-chunk trajectory inference |
 | `train.py` | platform-balanced chunk training with physical augmentation, EMA weights, official-metric validation |
-| `predict.py` | checkpoint (ensemble) → `submission.csv`, optional val self-scoring |
+| `predict.py` | checkpoint → `submission.csv`, optional val self-scoring (accepts several checkpoints, but every ranked entry is a single model) |
 | `checkpoints/*.pt`, `configs/*.json`, `checkpoints/MANIFEST.json` | the two selected checkpoints (SHA-256 / MD5 in the manifest) and their exact configs |
 | `breakdown.py` | val score per platform and per drone source for checkpoints |
 | `notebooks/tartanimu_colab_experiments.ipynb` | Colab notebook: validated experiment grid + final fit + submission |
 | `report/` → `Hack2Publish_TartanIMU_report.pdf` | technical report (IEEE template; tables from the official scoring service via `report/make_tables.py`) |
-| `hf_release/` | Hugging Face release: https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42 |
+| `hf_release/` | source of the Hugging Face release (`infer.py`, `model.py`, weights, model card, `SHA256SUMS`) → https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42 |
+| `paper/` → `Hack2Publish_paper_draft.pdf` | standalone paper draft (IEEE conference format) |
 | `official_scores/` | official scoring-service outputs (per platform / per sequence) |
 | `requirements.txt` | environment |
 | `notebooks/tartanimu_v1_submission.ipynb` | **self-contained notebook** (Kaggle/local) reproducing v1 → `submission_v1.csv` |
@@ -59,7 +79,12 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 
 Public-LB noise is ±0.01–0.02 for this family (identical recipes on different GPUs: 0.2870 vs 0.3052), so entries were chosen by val-validated recipe first.
 
-## Run
+## Citation
+
+If you use this code or the data findings, please cite the TartanIMU dataset/challenge (Zhao et al., CVPR 2025;
+TartanIMU Challenge, IROS 2026) and this repository / the paper draft above.
+
+## Run (training)
 
 ```bash
 python analysis.py                                   # EDA → analysis/summary.md + figures
