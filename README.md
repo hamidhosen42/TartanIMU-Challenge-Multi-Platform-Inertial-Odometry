@@ -47,7 +47,8 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | **final_v4_160 — same, 160 ep (selected entry #2)** | val recipe 0.2030 | **0.2870** |
 | final_v6_160 / final_colab — wide model, 160 / 240 ep | val recipe 0.1987 | 0.2893 / 0.2897 |
 | final_n_uni_160 — v4 + uniform per-trajectory sampling, 160 ep | val recipe 0.1982 | 0.2978 |
-| **final_w_uni_160 — wide + uniform sampling, 160 ep (ranked, selected entry #1)** | — | **0.2876** |
+| final_w_uni_160 — wide + uniform sampling, 160 ep (laptop) | — | 0.2876 |
+| **final_kaggle_w_uni — same recipe trained on a Kaggle GPU (ranked, selected entry #1)** | — | **0.2861** |
 
 Public-LB noise is ±0.01–0.02 for this family (identical recipes on different GPUs: 0.2870 vs 0.3052), so entries were chosen by val-validated recipe first.
 
@@ -59,7 +60,7 @@ python train.py --name v1                            # train on train, validate 
 python predict.py --ckpt runs/v1/best.pt --val       # val score + submission.csv
 kaggle competitions submit -c tartan-imu-challenge-iros2026 -f submission.csv -m "v1"
 python train.py --name final_w_uni_160 --splits train,val --epochs 160 --steps 250 --physics 1 --dilate 1.3 --rot-deg-drone 45 --boost-a 1 --traj-uniform 1 --swa-from 140 --width 192 --ctx-layers 3   # ranked model
-python predict.py --ckpt checkpoints/final_w_uni_160_swa.pt --out submission.csv   # reproduce the ranked submission
+python predict.py --ckpt checkpoints/final_kaggle_w_uni_swa.pt --out submission.csv   # reproduce the ranked submission
 python breakdown.py runs/<name>/swa.pt                                            # val breakdown of a train-only run
 ```
 # TartanIMU-Challenge-Multi-Platform-Inertial-Odometry

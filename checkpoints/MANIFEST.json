@@ -27,7 +27,7 @@
       "plat_probs": "0.25,0.25,0.25,0.25"
     },
     "swa_n": 21,
-    "tag": "primary",
+    "tag": "same recipe, trained on Apple M5",
     "size_mb": 16.0,
     "repro_max_abs_diff": 0.0
   },
@@ -60,5 +60,38 @@
     "tag": "secondary",
     "size_mb": 7.2,
     "repro_max_abs_diff": 0.0
+  },
+  "final_kaggle_w_uni": {
+    "sha": "69764745d0589eba846d571b364aa3d33fe6a25be5e516879339b3231ceeb9b1",
+    "args": {
+      "name": "final_kaggle_w_uni",
+      "splits": "train,val",
+      "epochs": 160,
+      "steps": 250,
+      "batch": 64,
+      "lr": 0.0015,
+      "wd": 0.02,
+      "chunk": 16,
+      "width": 192,
+      "ctx_layers": 3,
+      "seed": 0,
+      "eval_every": 2,
+      "rot_deg": 15.0,
+      "physics": 1,
+      "dilate": 1.3,
+      "traj_uniform": 1,
+      "drop_source_b": 0,
+      "lag": 0,
+      "vib": 1.0,
+      "rot_deg_drone": 45.0,
+      "boost_a": 1.0,
+      "swa_from": 140,
+      "plat_probs": "0.25,0.25,0.25,0.25"
+    },
+    "swa_n": 21,
+    "tag": "primary (ranked)",
+    "trained_on": "Kaggle GPU (kernel hosen42/tartanimu-final-w-uni v2)",
+    "repro_max_abs_diff_mps": 0.004697999999999425,
+    "repro_mean_abs_diff_mps": 8.233169244132193e-05
   }
 }

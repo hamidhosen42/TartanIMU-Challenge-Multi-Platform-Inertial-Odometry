@@ -7,22 +7,22 @@
 | Team name (exactly as on the leaderboard) | _TODO: fill in from the leaderboard_ |
 | Members (name — affiliation) | Md. Hamid Hosen — _TODO: affiliation_ |
 | Contact email | hamidhosen8444@gmail.com |
-| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | **56394522** — `submission_final_w_uni_160.csv`, 2026-09-20 12:54 UTC (our two selected Kaggle entries are this one and **56332266** `submission_final_v4_160.csv`, 2026-09-18 08:17 UTC; both checkpoints are included) |
-| Public score of that submission | 0.28763 (second entry: 0.28696) |
-| Score you expect us to reproduce | same ± 0.005 (single seed, EMA+SWA weights; MPS vs CUDA numerics differ slightly) |
+| Submission you want ranked (Kaggle submission ID, or the submission filename + its UTC timestamp) | **56402554** — `submission_final_kaggle_w_uni.csv`, 2026-09-20 17:34 UTC (our two selected Kaggle entries are this one and **56332266** `submission_final_v4_160.csv`, 2026-09-18 08:17 UTC; both checkpoints are included) |
+| Public score of that submission | 0.28609 (second entry: 0.28696) |
+| Score you expect us to reproduce | same ± 0.001 from the checkpoint (inference is deterministic up to device numerics: re-running `predict.py` on Apple MPS instead of the Kaggle GPU changes velocities by ≤ 0.005 m/s, mean 8e-5); retraining from scratch: ± 0.01–0.02 (see section 5) |
 | Code repository or archive (a private link is fine) | https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry |
-| Commit SHA that produced the checkpoint | `a9a53840d23a8a426a05d5d616bead0e2f77325e` (training code; checkpoints are committed in the following commit) |
-| Checkpoint file name(s) | `checkpoints/final_w_uni_160_swa.pt` (ranked); `checkpoints/final_v4_160_swa.pt` (second selected entry); `checkpoints/MANIFEST.json` |
-| Checkpoint SHA-256 | `89a0db50a1300b47de87141e0871dc87836135b75cf1025ca1aeeba7b47006ea` (ranked); `f1eb208625e2c161d88baeaf3ec5203db7455d63bd8bfa24e1b424851b507a05` (second) |
-| Config file path inside the repository | `configs/final_w_uni_160.json` / `configs/final_v4_160.json` (exact argparse namespaces; also stored inside each checkpoint under `args`). Reproduce with `python train.py --name final_w_uni_160 --splits train,val --epochs 160 --steps 250 --physics 1 --dilate 1.3 --rot-deg-drone 45 --boost-a 1 --traj-uniform 1 --swa-from 140 --width 192 --ctx-layers 3` |
-| Total training cost (GPU type × hours) | Apple M5 laptop GPU (MPS) × ≈9 h for the ranked run (shared with another run for part of it); ≈45 h total across all experiments, plus ≈6 h on a Colab L4 |
+| Commit SHA that produced the checkpoint | `a9a53840d23a8a426a05d5d616bead0e2f77325e` (training code, identical for both entries; the ranked checkpoint was trained by the Kaggle script kernel `hosen42/tartanimu-final-w-uni` v2, which embeds these exact files; checkpoints are committed in a later commit) |
+| Checkpoint file name(s) | `checkpoints/final_kaggle_w_uni_swa.pt` (ranked); `checkpoints/final_v4_160_swa.pt` (second selected entry); `checkpoints/final_w_uni_160_swa.pt` (same recipe as the ranked one, trained on the laptop, public 0.2876); `checkpoints/MANIFEST.json` |
+| Checkpoint SHA-256 | `69764745d0589eba846d571b364aa3d33fe6a25be5e516879339b3231ceeb9b1` (ranked); `f1eb208625e2c161d88baeaf3ec5203db7455d63bd8bfa24e1b424851b507a05` (second) |
+| Config file path inside the repository | `configs/final_kaggle_w_uni.json` / `configs/final_v4_160.json` (exact argparse namespaces; also stored inside each checkpoint under `args`). Reproduce with `python train.py --name final_kaggle_w_uni --splits train,val --epochs 160 --steps 250 --physics 1 --dilate 1.3 --rot-deg-drone 45 --boost-a 1 --traj-uniform 1 --swa-from 140 --width 192 --ctx-layers 3` |
+| Total training cost (GPU type × hours) | Kaggle GPU (P100/T4 class) × 3.6 h for the ranked run; ≈50 h on an Apple M5 laptop GPU across all experiments, plus ≈6 h on a Colab L4 |
 
 ## Artifact checklist
 
-- [x] **Final checkpoint(s)** — `checkpoints/final_w_uni_160_swa.pt`, `checkpoints/final_v4_160_swa.pt`
+- [x] **Final checkpoint(s)** — `checkpoints/final_kaggle_w_uni_swa.pt`, `checkpoints/final_v4_160_swa.pt`
 - [x] **Training code** — `train.py`, `model.py`, `common.py` at the commit above
-- [x] **The exact config / hyper-parameter file** — `configs/final_w_uni_160.json`, `configs/final_v4_160.json`
-- [x] **Inference script** — `predict.py` (`python predict.py --ckpt checkpoints/final_w_uni_160_swa.pt --out submission.csv`; reproduces the submitted CSV bit-exactly on MPS)
+- [x] **The exact config / hyper-parameter file** — `configs/final_kaggle_w_uni.json`, `configs/final_v4_160.json`
+- [x] **Inference script** — `predict.py` (`python predict.py --ckpt checkpoints/final_kaggle_w_uni_swa.pt --out submission.csv`)
 - [x] **Environment** — `requirements.txt` (Python 3.12.11)
 - [x] **This report.**
 
@@ -72,7 +72,7 @@ Weights were set once by hand (not tuned or scheduled).
 
 ## 4. Training schedule
 
-AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **160 epochs** (model-selection runs: 60 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 140–160. Apple M5 laptop (MPS backend, FP32), ≈3 min/epoch for the wide model → ≈8–9 h wall-clock for the ranked run.
+AdamW (β = 0.9/0.99, weight decay 0.02), OneCycle LR (peak 1.5e-3, 8 % warm-up, final 1.5e-3/4000), batch 64 chunks × 16 windows, 250 optimizer steps per epoch, **160 epochs** (model-selection runs: 60 epochs), gradient clipping 2.0, EMA of weights (decay 0.998), SWA over epochs 140–160. The ranked run was trained on a Kaggle GPU (FP32, 3.6 h wall-clock); the same recipe on an Apple M5 laptop (MPS) takes ≈3 min/epoch (≈8 h).
 
 ## 5. Model selection — how did you choose which checkpoint to submit?
 
@@ -89,7 +89,7 @@ We uploaded 12 submissions in total (1 earlier baseline, 2 prediction ensembles 
 models). An important observation for the analysis paper: **the public leaderboard is noisy at the ±0.01–0.02 level for
 this model family.** Two runs of the *identical* recipe (v4, 160 epochs, train+val) on different hardware (Apple M5 vs.
 an L4 GPU, hence different random paths) scored 0.2870 and 0.3052; the wide 240-epoch and 160-epoch models scored
-0.2897 / 0.2893. Val differences of a few thousandths therefore do not transfer to the public split, which is dominated by
+0.2897 / 0.2893; the final recipe trained on a Kaggle GPU vs. the laptop scored 0.2861 vs. 0.2876. Val differences of a few thousandths therefore do not transfer to the public split, which is dominated by
 a handful of short racing-drone trajectories. We consequently chose the two final entries by *val-validated recipe*
 first and public score second, and we did not tune anything against the leaderboard.
 
