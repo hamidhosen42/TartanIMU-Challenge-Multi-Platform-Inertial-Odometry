@@ -1,0 +1,706 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMU Odometry Challenge — Technical Report Template
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[letterpaper,10pt,conference]{ieeeconf}
+
+\IEEEoverridecommandlockouts
+\overrideIEEEmargins
+
+% ------------------------------------------------------------------------------
+% Packages
+% ------------------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{hyperref}
+% 链接改为着色文字而非边框；挑战赛网址按要求标红。
+\hypersetup{colorlinks=true, urlcolor=red, linkcolor=black, citecolor=black}
+% 打分服务的 URL 有 71 字符，双栏放不下：允许在 / - _ . 处断行。
+% 不加 \Urlmuskip：那会把 URL 拉伸对齐成 "https : / / hugging face . co"，很难看。
+% 也不在 '-' 处断行：断在 Tartan-IMU 的连字符上，读者会以为那个连字符是排版加的。
+\def\UrlBreaks{\do\/\do\_\do\.}
+\usepackage{graphicx}
+
+% Optional colors for comments/instructions
+\definecolor{instructionblue}{RGB}{35,90,160}
+\newcommand{\instruction}[1]{\textcolor{instructionblue}{\textit{#1}}}
+
+% 官方 per-sequence 打分服务（Table III/IV/V 的数字必须来自这里）。
+% \urldef 在定义处冻结 catcode，因此 URL 里的下划线是安全的。
+\urldef{\scoringurl}\url{https://huggingface.co/spaces/Tartan-IMU/imu_odometry_challenge_scoring}
+
+% ------------------------------------------------------------------------------
+% Title and Authors
+% ------------------------------------------------------------------------------
+\title{\LARGE \bf
+Technical Report for the IMU Odometry Challenge
+}
+
+\author{\\
+Replace with Your Submission Title\\
+Kaggle team name: \textcolor{red}{\textit{exactly as it appears on the leaderboard}}\\
+Albert Author$^{1}$, Bernard D. Researcher$^{2}$, and Charlie Contributor$^{3}$%
+\thanks{Replace this footnote with funding or support acknowledgments, if applicable.}%
+\thanks{$^{1}$Albert Author is with Department/Institution, City, Country.
+        {\tt\small albert.author@example.com}}%
+\thanks{$^{2}$Bernard D. Researcher is with Department/Institution, City, Country.
+        {\tt\small bernard.researcher@example.com}}%
+\thanks{$^{3}$Charlie Contributor is with Department/Institution, City, Country.
+        {\tt\small charlie.contributor@example.com}}%
+}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+\instruction{Please read the latest notice from
+\url{https://superodometry.com/imuchallenge}
+\\
+Provide a concise summary of your solution to the IMU Odometry Challenge.
+The abstract should briefly describe:
+(1) the core idea and overall approach;
+(2) the main model or system architecture;
+(3) the most important techniques used to improve performance;
+(4) the training data and inference strategy, when relevant; and
+(5) the final challenge results using the primary evaluation metrics.
+}
+
+\end{abstract}
+
+\vspace{0.5em}
+\noindent\textcolor{red}{\rule{\columnwidth}{0.4pt}}\\[-0.3em]
+\noindent\textcolor{red}{\textbf{Selection criteria.} The Kaggle leaderboard is \emph{not} the
+only criterion used by the challenge committee to determine the Top 10 teams: the quality of
+this technical report is also taken into account. The Top 10 teams will be invited to
+contribute to the forthcoming \emph{IMU Foundation Model} white paper.}\\[-0.2em]
+\noindent\textcolor{red}{\textbf{Format and deadline.} Maximum \textbf{6 pages excluding
+references}, and \textbf{7 pages in total} including references, in this template. The
+\textbf{appendix does not count} towards either limit. Reports are due
+\textbf{23:59 US Eastern Time (EDT, UTC$-$4) on 23 September 2026}, three days after the
+leaderboard closes.}\\[-0.2em]
+\noindent\textcolor{red}{\textbf{How to submit.} The report is \emph{not} uploaded on the
+website. It is submitted \textbf{inside the challenge Form}: fill the Form in as usual and
+attach this report at the end --- that single submission is what we collect.
+The Form is linked from the \textbf{Announcements} section of
+\url{https://superodometry.com/imuchallenge}. Please check that section regularly: all
+challenge news, rule clarifications and any change to these deadlines are posted there.}\\[-0.2em]
+\noindent\textcolor{red}{\textbf{Where the numbers in this report come from.} Every number in
+Tables~\ref{tab:overall_results}, \ref{tab:platform_results} and \ref{tab:sequence_results}
+must be produced by the \textbf{official per-sequence scoring service}:\\[0.15em]
+\scoringurl\\[0.15em]
+Upload your submission CSV and it returns ATE$_{20}$, AVE and RTE for all 89 test sequences,
+computed with the same code as the Kaggle leaderboard. \textbf{Five submissions per team per
+day.} Your team name must match your \textbf{Kaggle team name exactly}; teams with no Kaggle
+submission are not scored.}\\[-0.2em]
+\noindent\textcolor{red}{\rule{\columnwidth}{0.4pt}}
+\vspace{0.5em}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+
+\instruction{
+Briefly introduce your approach to the challenge.
+We recommend addressing the following questions:
+}
+
+\begin{itemize}
+    \item What are the main challenges of developing foundation models for IMU odometry?
+    \item What motivated the design of your solution?
+    \item What are the key components of your method?
+    \item What distinguishes your method from others?
+    \item What are the main contributions of your method?
+    
+    %\item What are the main contributions of your challenge submission?
+    
+    % \item What assumptions does your method make about the IMU, platform,
+    % motion distribution, coordinate frame, or deployment setting?
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Method}
+
+\instruction{
+Describe the proposed method in sufficient detail to allow readers to understand,
+analyze, and reproduce the system.
+}
+
+% ------------------------------------------------------------------------------
+\subsection{Overall Architecture}
+
+\begin{itemize}
+    \item What is the overall system architecture of the proposed solution? 
+    % \item What are the model inputs and outputs?
+    % \item How is temporal IMU information represented and modeled?
+    % \item What are the main network components?
+    % \item Is a single unified model used for all platforms, or are
+    % platform-specific models/components used?
+    %\item Does the system use routing, mixture-of-experts, ensembling, hierarchical prediction, recurrent state, or multi-stage refinement?
+    %\item Does the system explicitly estimate intermediate quantities such as velocity, displacement, orientation, bias, gravity, uncertainty, or motion class?
+    \item What design choices were made specifically to improve cross-platform
+    or out-of-distribution generalization?
+\end{itemize}
+
+\instruction{
+Please include an architecture or pipeline figure.
+}
+
+\begin{figure}[htbp]
+    \centering
+    % \includegraphics[width=\linewidth]{figures/method_overview.pdf}
+    \fbox{\parbox[c][3.2cm][c]{0.92\linewidth}{
+        \centering
+        Replace with method overview / architecture figure
+    }}
+    \caption{Overview of the proposed IMU odometry method.}
+    \label{fig:method_overview}
+\end{figure}
+
+% ------------------------------------------------------------------------------
+\subsection{Data Processing}
+
+\begin{itemize}
+    %\item What raw IMU signals are used?
+    %\item What sampling frequency is used during training and inference?
+    %\item Is resampling or synchronization required?
+    %\item How are accelerometer and gyroscope measurements normalized?
+    %\item Are coordinate-frame transformations applied?
+    %\item Is gravity alignment, orientation normalization, or canonicalization used?
+    %\item How are training windows or temporal sequences constructed?
+    %\item What temporal context length and stride are used?
+    %\item Are sensor biases, offsets, or calibration parameters estimated or corrected?
+    \item What is the data preprocessing process?
+        
+    %\item What filtering, clipping, denoising, interpolation, or missing-data handling is used?
+    \item What data augmentation (if any) is applied?
+    %\item Are augmentations physically motivated, e.g., rotation, bias, scale, noise, time warping, sensor perturbation, or trajectory perturbation?
+    \item Anything else? 
+\end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Training Data}
+
+\instruction{
+Clearly list \textbf{all datasets} used to develop or train the final submitted model.
+This includes official challenge data, external public datasets, synthetic data,
+self-collected data, pretrained checkpoints, and pseudo-labeled data.
+}
+
+\begin{table}[htbp]
+    \centering
+    \footnotesize
+    \caption{Datasets used for model development and training.}
+    \begin{tabular}{p{2.3cm} p{1.6cm} p{2.8cm}}
+        \toprule
+        Dataset & Type & Usage \\
+        \midrule
+        Challenge train set & Official & Training / validation \\
+        External Dataset A & Public & Pretraining \\
+        Synthetic Dataset B & Synthetic & Augmentation \\
+        \bottomrule
+    \end{tabular}
+    
+    \label{tab:datasets}
+    
+\end{table}
+
+% \begin{itemize}
+%     \item Which datasets were used for training, validation, model selection,
+%     pretraining, or hyperparameter tuning?
+%     \item Were any external datasets used? If so, why were they useful?
+%     \item Was synthetic data used? If so, how was it generated?
+%     \item Were pretrained models or released checkpoints used?
+%     \item How were train/validation splits constructed?
+%     \item How did you avoid test-set leakage or unintended use of test information?
+%     \item Did you balance or reweight platforms, sequences, or motion types during training?
+% \end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Training and Optimization}
+
+\begin{itemize}
+    \item What loss functions, optimizer, learning-rate schedule, batch size  are used?
+    % \item What are the major hyperparameters?
+    \item How many epochs or optimization steps are used?  What hardware is used for training? And what is the approximate training time?
+    
+    \item Is training performed in one stage or multiple stages?
+    \item Is curriculum learning, fine-tuning, domain adaptation, or platform-specific specialization used?
+    \item How is the final checkpoint selected?
+    % \item Are multiple random seeds used?
+    % \item Are exponential moving average, checkpoint averaging, or other
+    % stabilization techniques used?
+    % \item What regularization techniques are used?
+\end{itemize}
+
+
+
+
+
+\subsection{Inference}
+
+\begin{itemize}
+    \item Describe the complete inference pipeline used to generate the final submission.
+
+    \item What is the average inference latency or throughput?
+    % \item Does inference use checkpoint ensembling or model ensembling?
+    % \item Is test-time augmentation (TTA) used?
+    % \item Is temporal smoothing or trajectory-level post-processing used?
+    % \item Is platform classification, routing, or specialization used?
+    % \item Does inference maintain persistent hidden state?
+    % \item Does the method use future context, full-trajectory context, or only past observations?
+    % \item Is any test-time / online adaptation performed?
+    % \item Are predictions integrated, filtered, calibrated, or otherwise post-processed?
+    % \item If the development-time system differs from the submitted system,
+    % what exactly changed in the final submission?
+\end{itemize}
+
+
+% ------------------------------------------------------------------------------
+\subsection{Model Complexity and Runtime}
+
+\begin{itemize}
+    \item How many parameters does the final model contain?
+   
+    \item What hardware is used for inference?
+
+    \item What is your inference speed? (Hz)
+  
+    \item Can the method operate online / in real time?
+    \item What is the peak GPU/CPU memory requirement?
+    % \item Does the method require the full trajectory or only causal/past context?
+\end{itemize}
+
+\begin{table}[htbp]
+    \centering
+    \footnotesize
+     \caption{Model complexity and runtime statistics.}
+    \begin{tabular}{lc}
+        \toprule
+        Property & Value \\
+        \midrule
+        Number of parameters & -- \\
+        Training hardware & -- \\
+        Training time & -- \\
+        Inference hardware & -- \\
+        Inference speed (Hz) & -- \\
+        % Temporal context & -- \\
+        Peak memory & -- \\
+        \bottomrule
+    \end{tabular}
+   
+    \label{tab:runtime}
+\end{table}
+
+% ------------------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Development Experiments}
+\label{sec:devexp}
+
+\instruction{
+Summarize \textbf{what you actually tried and what happened} --- the experimental record.
+Interpretation and lessons for the field belong in Section~\ref{sec:insights}, not here.
+Negative results are encouraged when they provide useful technical insight; please quantify
+gains rather than describing them qualitatively.
+}
+
+\begin{itemize}
+    \item What model architectures did you try?
+    \item Which changes produced the largest gains, and \textbf{by how much} on which metric?
+    \item Which approaches did not work as expected?
+    % \item What experiments changed your understanding of the problem?
+    % \item Did improvements transfer consistently across platforms?
+    \item Were some techniques beneficial for one platform but harmful for another?
+    \item Which components improved generalization rather than only validation performance?
+    % \item Did additional temporal context consistently help?
+    \item Did more training data consistently help?
+    \item Did model scale correlate with better performance?
+    % \item What was the most important bottleneck: model capacity, data quality, representation, optimization, domain shift, or inference strategy?
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments}
+
+% ------------------------------------------------------------------------------
+\subsection{Official Challenge Performance}
+
+\instruction{
+Report the performance of the final submitted method using the official challenge
+evaluation metrics, and include the leaderboard result or ranking.
+}
+
+\noindent\textcolor{red}{\textbf{All numbers in Tables~\ref{tab:overall_results},
+\ref{tab:platform_results} and \ref{tab:sequence_results} must be produced by the official
+scoring service, \scoringurl, not computed locally.} State the MD5 of
+the submission CSV they come from, so that the committee can reproduce them:
+\texttt{md5 = \textbf{[fill in]}}.}
+
+\begin{table}[htbp]
+    \centering
+    \footnotesize
+    \caption{Overall challenge performance on the \textbf{final (private) leaderboard}.
+    The TartanIMU Score is $0.6\,\mathrm{AVE}/0.7356 + 0.4\,\mathrm{ATE}_{20}/3.1160$;
+    it is dimensionless and \emph{lower is better} (the all-zero submission scores exactly
+    1.000). ATE$_{20}$ is the 20\,m-segment trajectory error after SE(3) alignment.
+    \textbf{RTE does not enter the ranking} and is reported for analysis only; it is defined
+    in the caption of Table~\ref{tab:sequence_results}.}
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{lcccc}
+        \toprule
+        Method & Score $\downarrow$ & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ \\
+        \midrule
+        TartanIMU Baseline & -- & -- & -- & -- \\
+        Ours & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+    
+    \label{tab:overall_results}
+\end{table}
+
+% ------------------------------------------------------------------------------
+\subsection{Per-Platform Results}
+
+\begin{table}[htbp]
+    \centering
+    \footnotesize
+    \caption{Performance by platform. RTE is defined in the caption of
+    Table~\ref{tab:sequence_results}.}
+    \begin{tabular}{lccc}
+        \toprule
+        Platform & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ \\
+        \midrule
+        Wheeled / Car & -- & -- & -- \\
+        Handheld / Human & -- & -- & -- \\
+        Legged / Quadruped & -- & -- & -- \\
+        Aerial / Drone & -- & -- & -- \\
+        \midrule
+        Average & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+    
+    \label{tab:platform_results}
+\end{table}
+
+% ------------------------------------------------------------------------------
+\subsection{Per-Sequence Results}
+
+\instruction{The full per-sequence table is reported in the appendix,
+Table~\ref{tab:sequence_results}. Please discuss the trends here rather than repeating the numbers:
+which sequences are hardest, what they have in common, and whether the errors are concentrated
+in a few sequences or spread evenly.}
+
+% ------------------------------------------------------------------------------
+% \subsection{Comparison with the TartanIMU Baseline}
+
+% \begin{itemize}
+%     \item How much does the final method improve over the provided TartanIMU baseline?
+%     \item Which platforms show the largest gains?
+%     \item Which platforms remain the most difficult?
+%     \item Which components account for the largest improvements?
+%     % \item Are improvements consistent across sequences, or driven by a small subset?
+% \end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Ablation Studies}
+
+\instruction{
+Ablation studies are strongly encouraged for the most important components
+of the final method.
+}
+
+
+
+% Suggested ablations include:
+% \begin{itemize}
+%     \item model architecture;
+%     \item temporal context length;
+%     \item input representation;
+%     \item data augmentation;
+%     \item external or synthetic training data;
+%     \item loss functions;
+%     \item model scaling;
+%     \item platform specialization or routing;
+%     \item ensembling;
+%     \item test-time augmentation;
+%     \item trajectory post-processing.
+% \end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Generalization Analysis}
+
+\begin{itemize}
+    \item How well does the method generalize?
+    \item Is there evidence of negative transfer between platforms?
+    % \item Does one unified model perform competitively with platform-specific models?
+    % \item Which motion types or platforms benefit most from shared training?
+    % \item What characteristics of the training distribution appear most important
+    % for test-time generalization?
+    % \item How sensitive is the method to sampling rate, sensor noise, bias,
+    % orientation, or coordinate-frame differences?
+\end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Failure-Mode Analysis}
+
+\begin{itemize}
+    \item What are the most common failure cases?
+    % \item Does performance degrade under aggressive motion or long-duration integration?
+    % \item How does the method behave under unseen motion patterns?
+    % \item How sensitive is it to sensor bias, noise, saturation, or calibration errors?
+    % \item Are failures associated with particular platforms or motion regimes?
+    % \item Can failures be detected from model confidence or uncertainty?
+    \item What limitations remain unresolved?
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Insights and Lessons Learned}
+\label{sec:insights}
+
+\instruction{
+This section is about \textbf{what your results mean for the field}, not about what you ran
+--- the experimental record belongs in Section~\ref{sec:devexp}. Please interpret those
+numbers rather than repeating them.
+}
+
+\begin{itemize}
+    \item Based on your experiments, does a \textbf{single universal inertial model} appear
+    feasible, or does platform specialization remain necessary? What evidence points either way?
+    \item Where does the bottleneck currently sit --- data, architecture, optimization, or the
+    evaluation protocol itself?
+    \item Which of your findings would you expect to \textbf{transfer} to platforms, sensors or
+    motion regimes outside this benchmark, and which would not?
+    \item What kinds of data gave the highest marginal benefit per hour collected?
+    \item What did this challenge reveal about the current limitations of learning-based
+    inertial odometry?
+    \item Which research directions look most promising for future IMU odometry systems?
+    % \item What types of data provided the highest marginal benefit?
+    % \item Is a universal inertial model feasible based on your experiments?
+    % \item When does platform-specific specialization appear necessary?
+    % \item What did the challenge reveal about the current limitations of learning-based inertial odometry?
+    % \item Based on your experiments, what research directions appear most promising for future IMU odometry systems?
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ------------------------------------------------------------------------------
+\subsection{Feedback to the Organizers}
+
+\instruction{This subsection is read directly by the challenge committee and feeds into the
+design of the next edition. Candid criticism is more useful to us than politeness.}
+
+\begin{itemize}
+    \item Were the rules, metrics, datasets and submission process clear and unambiguous?
+    Which part cost you the most time to figure out?
+    \item Did anything about the evaluation metric behave in a way you did not expect?
+    \item What additional data, platforms, or evaluation settings would most improve the
+    next edition?
+    \item Was any part of the benchmark measuring something other than what it intended to?
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+\instruction{Summarize the overall report: the final solution and its main strengths, the
+most important remaining limitations, and the most promising future directions.}
+
+\section*{ACKNOWLEDGMENT}
+\instruction{Please include the acknowledgment here.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{APPENDIX}
+\instruction{Add the appendix here.}
+
+% The appendix may include:
+% \begin{itemize}
+%     \item additional implementation details;
+%     \item full hyperparameter settings;
+%     \item extended ablation studies;
+%     \item additional per-sequence tables;
+%     \item qualitative examples;
+%     \item additional failure cases;
+%     \item training curves;
+%     \item supplementary reproducibility information.
+% \end{itemize}
+
+
+\subsection{Per-Sequence Results (Full Table)}
+
+\instruction{Report the metrics for \textbf{all 89 test sequences}. Upload your submission
+CSV to the official scoring service, \scoringurl, and it returns ATE, AVE and RTE for
+every sequence, ready to be copied into the table below (the service also offers the same
+table as a CSV download).}
+
+\begin{table*}[htbp]
+    \centering
+    \footnotesize
+    \caption{Per-sequence challenge results over the 89 test sequences. ATE, AVE and RTE are
+    produced by the official per-sequence scoring service whose URL is given on the first page.
+    \textbf{RTE} (Relative Trajectory Error, m) follows the definition of Sturm
+    \emph{et al.}~\cite{sturm2012rgbd} and is the metric used in AirIO: over sliding windows of
+    a fixed duration $\Delta t$, it is the RMSE of the difference between the predicted and the
+    ground-truth relative displacement,
+    $\mathrm{RTE} = \sqrt{\frac{1}{n}\sum_{i}\lVert (\hat{\mathbf{p}}_{i+\Delta t} -
+    \hat{\mathbf{p}}_{i}) - (\mathbf{p}_{i+\Delta t} - \mathbf{p}_{i}) \rVert^{2}}$.
+    Unlike ATE it measures \emph{local} drift and is insensitive to accumulated global offset.
+    The window length is fixed to $\Delta t = 5$\,s for all platforms: at $\Delta t = 1$\,s the
+    metric is nearly a restatement of AVE, while the shortest aerial sequences are only 19\,s
+    long, which bounds $\Delta t$ from above.}
+    \label{tab:sequence_results}
+    \begin{tabular}{cccc @{\hspace{2.2em}} cccc @{\hspace{2.2em}} cccc}
+        \toprule
+        Seq. ID & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ &
+        Seq. ID & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ &
+        Seq. ID & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ \\
+        \midrule
+        1  & -- & -- & -- & 31 & -- & -- & -- & 61 & -- & -- & -- \\
+        2  & -- & -- & -- & 32 & -- & -- & -- & 62 & -- & -- & -- \\
+        3  & -- & -- & -- & 33 & -- & -- & -- & 63 & -- & -- & -- \\
+        $\vdots$ & & & & $\vdots$ & & & & $\vdots$ & & & \\
+        30 & -- & -- & -- & 60 & -- & -- & -- & 89 & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+% ------------------------------------------------------------------------------
+\subsection{Reproducibility and Submission Artifacts}
+
+\instruction{
+List every artifact needed to reproduce the reported numbers: Kaggle team name and the
+submission that produced them (submission id and MD5 of the CSV); code repository and commit;
+trained checkpoint (link + MD5); configuration files; environment;
+random seeds, and whether the reported
+score is a single run or an average.
+}
+
+\vspace{0.3em}
+\noindent\textcolor{red}{\textbf{Compliance declaration (required).}} \emph{Every team must
+answer all five questions below explicitly. Reports that leave them unanswered cannot be
+considered for the Top 10.}
+
+\begin{enumerate}
+    \item Do the submitted predictions come from a \textbf{single model with one shared set of
+    weights}? Inferring the embodiment inside the network is allowed and is the point of the
+    benchmark; dispatching to separately trained per-platform experts is not.
+    \item Is any \textbf{platform classification, routing, or platform-specific
+    specialization} used at inference? If yes, describe exactly where it sits in the pipeline.
+    \item Is any \textbf{ensembling} used --- model ensembling, checkpoint averaging or
+    soups, or test-time augmentation? If yes, state how many members and how they are combined.
+    \item How did you \textbf{avoid test-set leakage}, including any indirect use of test
+    information for model or checkpoint selection?
+    \item If the development-time system differs from the submitted system, \textbf{what
+    exactly changed} in the final submission?
+\end{enumerate}
+
+% Please specify:
+% \begin{itemize}
+%     \item Kaggle team name, and the exact submission that produced the
+%           reported score (submission id / filename / MD5);
+%     \item code repository and commit hash;
+%     \item trained checkpoint (download link + MD5);
+%     \item configuration file(s) used for the final inference run;
+%     \item environment specification (Python / PyTorch / CUDA versions);
+%     \item hardware and wall-clock time, for training and for inference;
+%     \item random seeds, and whether the reported score is a single run or an
+%           average over seeds --- if a single run, state the run-to-run spread;
+%     \item \textbf{rule compliance}: confirm the predictions come from a
+%           \emph{single model with one shared set of weights}. Inferring the
+%           embodiment inside the network is allowed and is the point of the
+%           benchmark; recovering the platform in order to dispatch to four
+%           separately trained experts is not;
+%     \item any external data or pretrained weights used beyond the released
+%           TartanIMU baseline.
+% \end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Final Predictions}
+
+\instruction{
+Provide a link to the final predictions on the challenge test set. This must be
+the same CSV that was submitted to Kaggle: exactly the columns below, one row
+per test \texttt{window\_id}, 30,644 rows plus the header.
+}
+
+\begin{verbatim}
+window_id,vx,vy,vz
+1,0.0,0.0,0.0
+2,0.0,0.0,0.0
+...
+\end{verbatim}
+
+\noindent
+\texttt{vx, vy, vz} is the predicted mean \textbf{body-frame} velocity, in m/s,
+of that window. A window is \texttt{1.0 s = 200 frames} at 200\,Hz,
+non-overlapping: window $k$ of a trajectory is \texttt{imu[k*200:(k+1)*200]}.
+Window ids are taken from \texttt{index/test\_windows.csv}; every id must appear
+exactly once.
+
+% Please specify:
+% \begin{itemize}
+%     \item prediction download link;
+%     \item which Kaggle submission this file corresponds to;
+%     \item MD5 of the submitted CSV;
+%     \item any post-processing applied after the network output
+%           (test-time augmentation, temporal smoothing, magnitude rescaling,
+%           ensembling or model soup);
+%     \item how degenerate or missing windows are handled, if any.
+% \end{itemize}
+
+% Example:
+% \url{https://drive.google.com/...}
+
+% ------------------------------------------------------------------------------
+\subsection{Model and Inference Code}
+
+\instruction{Please provide final trained model/checkpoint and inference script.}
+
+% Please provide, when possible:
+% \begin{itemize}
+%     \item final trained model/checkpoint;
+%     \item inference script;
+%     \item configuration files required for inference;
+%     \item environment/dependency specification;
+%     \item code repository;
+%     \item brief instructions for reproducing the submitted predictions.
+% \end{itemize}
+
+% \instruction{
+% If the code or model cannot be publicly released, please describe the reason
+% and provide enough implementation detail for readers to understand the system.
+% }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% References
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{thebibliography}{99}
+
+\bibitem{tartanimu}
+S.~Zhao, S.~Zhou, R.~Blanchard, Y.~Qiu, W.~Wang, and S.~Scherer,
+``Tartan IMU: A Light Foundation Model for Inertial Positioning in Robotics,''
+in \emph{Proc.\ IEEE/CVF Conf.\ on Computer Vision and Pattern Recognition
+(CVPR)}, 2025, pp.~22520--22529.
+
+\bibitem{sturm2012rgbd}
+J.~Sturm, N.~Engelhard, F.~Endres, W.~Burgard, and D.~Cremers,
+``A Benchmark for the Evaluation of RGB-D SLAM Systems,''
+in \emph{Proc.\ IEEE/RSJ Int.\ Conf.\ on Intelligent Robots and Systems (IROS)}, 2012,
+pp.~573--580.
+
+\bibitem{baseline2}
+Replace with additional references as needed.
+
+\end{thebibliography}
+
+\end{document}
