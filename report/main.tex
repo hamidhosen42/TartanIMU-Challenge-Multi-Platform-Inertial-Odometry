@@ -187,7 +187,7 @@ causal variant would need a different context design and we did not build one.
         Training time & 3.6\,h for 160 epochs $\times$ 250 steps $\times$ 64 chunks \\
         Inference hardware & one GPU with $<$2\,GB of memory, or CPU \\
         Inference speed (Hz) & $\approx$1{,}200 windows/s on a Tesla T4 (all 30{,}644 test windows in 26\,s including loading); $\approx$17 windows/s on a 10-core laptop CPU (30\,min) \\
-        Peak memory & $<$2\,GB GPU; $\approx$2\,GB RAM (whole test set loaded) \\
+        Peak memory & $<$2\,GB GPU; 0.6\,GB RAM measured on CPU (whole test set) \\
         Online / real time & no (offline, bidirectional context) \\
         \bottomrule
     \end{tabular}
