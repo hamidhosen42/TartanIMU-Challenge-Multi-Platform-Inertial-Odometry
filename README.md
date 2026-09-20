@@ -11,17 +11,19 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | `data/` | competition data (`kaggle competitions download -c tartan-imu-challenge-iros2026`) |
 | `common.py` | data loading, window index, val "solution" builder, official-metric wrapper |
 | `kaggle_metric.py` | the organisers' exact leaderboard scorer (from the TartanIMU starter kit) |
+| `score_official.py` | scores a CSV on the organisers' per-sequence scoring service |
+| `kaggle_kernel/` | the Kaggle script kernel that trained the ranked checkpoint |
 | `analysis.py` → `analysis/` | EDA: inventory, target/IMU statistics, temporal autocorrelation, test composition, figures, `summary.md` |
 | `model.py` | `IMUNet` (conv stem → dilated TCN → transformer context → dense 20 Hz velocity) + sliding-chunk trajectory inference |
 | `train.py` | platform-balanced chunk training with physical augmentation, EMA weights, official-metric validation |
 | `predict.py` | checkpoint (ensemble) → `submission.csv`, optional val self-scoring |
-| `checkpoints/*.pt`, `configs/*.json`, `checkpoints/MANIFEST.json` | selected checkpoints (SHA-256 in the manifest / `REPORT.md`) and their exact configs |
+| `checkpoints/*.pt`, `configs/*.json`, `checkpoints/MANIFEST.json` | the two selected checkpoints (SHA-256 / MD5 in the manifest) and their exact configs |
 | `breakdown.py` | val score per platform and per drone source for checkpoints |
 | `notebooks/tartanimu_colab_experiments.ipynb` | Colab notebook: validated experiment grid + final fit + submission |
 | `report/` → `Hack2Publish_TartanIMU_report.pdf` | technical report (IEEE template; tables from the official scoring service via `report/make_tables.py`) |
 | `hf_release/` | Hugging Face release: https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42 |
 | `official_scores/` | official scoring-service outputs (per platform / per sequence) |
-| `REPORT.md`, `requirements.txt` | earlier markdown report + environment |
+| `requirements.txt` | environment |
 | `notebooks/tartanimu_v1_submission.ipynb` | **self-contained notebook** (Kaggle/local) reproducing v1 → `submission_v1.csv` |
 
 ## Approach
