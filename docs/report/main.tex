@@ -49,7 +49,7 @@ using the gravity vector available at training time, and bias/scale/noise. Only 
 every hyper-parameter on the released \texttt{val} split and then refit the final model on train+val for 160 epochs
 (EMA plus weight averaging over the last 20 epochs). On the official scoring service the submitted model reaches a
 TartanIMU Score of 0.219 over the 89 test sequences (macro AVE 0.180\,m/s, ATE$_{20}$ 0.563\,m). On the public
-leaderboard it scores 0.28609, ninth place at the close. We also document two properties of the drone data that we
+leaderboard it scores 0.28609, tenth of 131 teams at the close. We also document two properties of the drone data that we
 believe limit every IMU-only entry, and a measured leaderboard noise of $\pm$0.01--0.02 between identical recipes.
 \end{abstract}
 
@@ -252,7 +252,7 @@ Tables~\ref{tab:overall_results}--\ref{tab:sequence_results} come from the offic
 of our ranked Kaggle submission 56402554, \texttt{md5 = \textbf{fd12d4f25d7b52d44aaa4e4a14534378}}. The service
 still lists our team under its earlier Kaggle name, ``Md.\ Hamid Hosen'' (we renamed the team to Hack2Publish on
 21 September and the whitelist had not refreshed by the time of scoring); the md5 identifies the file regardless.
-The full-test score is 0.21903; the public leaderboard score is 0.28609 (rank 9 of 108 at the close). Our second
+The full-test score is 0.21903; the public leaderboard score is 0.28609 (rank 10 of 131 teams at the close). Our second
 selected entry, submission 56332266 (md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}), scores 0.22189 on the same
 service (AVE 0.181\,m/s, ATE$_{20}$ 0.581\,m). Table~\ref{tab:platform_results} shows where the score comes from:
 AVE is 0.05--0.07\,m/s on car, human and dog and 0.52\,m/s on the drone, ATE$_{20}$ is 0.36--0.49\,m against
