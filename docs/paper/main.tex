@@ -38,6 +38,19 @@ ground truth by different amounts, so that their labels disagree with each other
 properties bound what any IMU-only model can achieve on that split. Code, weights and inference script are public.
 \end{abstract}
 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/imu_to_velocity_pipeline.png}
+    \caption{The model pipeline, from raw IMU to the challenge score. (1) One network with one set of weights reads a 16\,s
+    chunk and predicts a velocity for each of its 320 tokens (20\,Hz); it is given no platform label. (2) The 20 token
+    predictions inside a 1\,s window are averaged, and each window's estimate is then a Hann-weighted average over the 8
+    overlapping chunks (stride 2 windows) that cover it. (3) The organisers' scorer computes AVE and ATE$_{20}$ (each 20\,m
+    segment SE(3)-aligned, RMS position error), averaged per trajectory, then per platform, then over the four platforms.
+    (4) Each term is divided by the all-zero submission's value, so all-zero scores 1.000. The auxiliary platform head,
+    used only as a training signal, is not drawn.}
+    \label{fig:pipeline}
+\end{figure*}
+
 \section{Introduction}
 An inertial measurement unit is the one sensor that every mobile system carries. Estimating velocity from it alone is
 attractive because it needs no line of sight, no lighting and no map, and difficult because the sensor measures
@@ -99,7 +112,7 @@ which the model never sees) over 20\,m pieces of the true path and takes the RMS
 are macro-averaged over platforms and averaged per trajectory within a platform.
 
 \subsection{Architecture}
-Fig.~\ref{fig:pipeline} shows the network. The input is a chunk of $T=16$ consecutive windows, $3200 \times 6$ raw
+Fig.~\ref{fig:pipeline} shows the pipeline from raw IMU to the challenge score. The input is a chunk of $T=16$ consecutive windows, $3200 \times 6$ raw
 samples, each channel divided by a fixed constant ($3\,\mathrm{m/s^2}$, $0.4\,\mathrm{rad/s}$) with no mean
 subtraction, so that gravity stays available as a tilt cue and rotation augmentation stays exact. A two-layer strided
 convolution (kernels 9 and 11, strides 2 and 5) produces 20\,Hz tokens of width 192. A parameter-free block computes
@@ -112,14 +125,6 @@ through a $1\times 1$ projection. Eight residual blocks of depthwise convolution
 encoder (4 heads, learned positions) mixes the 320 tokens; a linear head outputs a velocity per token. The prediction
 for window $k$ is the mean of its 20 tokens. An attention-pooled descriptor feeds a 4-way platform classifier that
 exists only in the training graph. The model has 3.9\,M parameters.
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\linewidth]{figures/pipeline.pdf}
-    \caption{The network. One set of weights for all platforms; the platform head in the dashed box is a training
-    signal only.}
-    \label{fig:pipeline}
-\end{figure}
 
 \subsection{Losses and Sampling}
 The loss is $L = L_{\mathrm{win}} + 0.5\,L_{\mathrm{dense}} + 0.2\,L_{\mathrm{drift}} + 0.05\,L_{\mathrm{plat}}$:

@@ -53,6 +53,19 @@ leaderboard it scores 0.16141, seventh of 132 teams (0.28609 and tenth on the pu
 believe limit every IMU-only entry, and a measured leaderboard noise of $\pm$0.01--0.02 between identical recipes.
 \end{abstract}
 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/imu_to_velocity_pipeline.png}
+    \caption{The model pipeline, from raw IMU to the challenge score. (1) One network with one set of weights reads a 16\,s
+    chunk and predicts a velocity for each of its 320 tokens (20\,Hz); it is given no platform label. (2) The 20 token
+    predictions inside a 1\,s window are averaged, and each window's estimate is then a Hann-weighted average over the 8
+    overlapping chunks (stride 2 windows) that cover it. (3) The organisers' scorer computes AVE and ATE$_{20}$ (each 20\,m
+    segment SE(3)-aligned, RMS position error), averaged per trajectory, then per platform, then over the four platforms.
+    (4) Each term is divided by the all-zero submission's value, so all-zero scores 1.000. The auxiliary platform head,
+    used only as a training signal, is not drawn.}
+    \label{fig:method_overview}
+\end{figure*}
+
 \section{Introduction}
 Three things make a general inertial odometer difficult. First, the physics is only partly observable: a 6-axis
 IMU measures specific force and angular rate, so gravity, sensor biases and the mounting of the sensor are mixed into
@@ -76,7 +89,7 @@ are useful to the organisers.
 
 \section{Method}
 \subsection{Overall Architecture}
-The pipeline is drawn in Fig.~\ref{fig:method_overview}, and Fig.~\ref{fig:eval_pipeline} follows one chunk from raw IMU to the challenge score. The input is a chunk of $T{=}16$ consecutive windows, i.e.\
+The pipeline, from raw IMU to the challenge score, is drawn in Fig.~\ref{fig:method_overview}. The input is a chunk of $T{=}16$ consecutive windows, i.e.\
 $3200\times 6$ raw samples $[a_x,a_y,a_z,\omega_x,\omega_y,\omega_z]$ with gravity retained. We do not subtract a
 mean; each channel is only divided by a fixed constant ($3\,\mathrm{m/s^2}$ for the accelerometer,
 $0.4\,\mathrm{rad/s}$ for the gyroscope). Keeping the mean matters twice: gravity is the only tilt cue the network
@@ -100,26 +113,6 @@ no routing and no per-platform component anywhere in the network.
 The choices made with cross-platform generalisation in mind were: no mean normalisation (see above), bidirectional
 context (bias and tilt are effectively estimated over 16\,s rather than 1\,s), and sampling that gives every platform
 the same number of gradient steps regardless of how many hours of data it has.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\linewidth]{figures/pipeline.pdf}
-    \caption{The pipeline. One network and one weight set for all platforms; the platform head in the dashed box is
-    used only as a training signal.}
-    \label{fig:method_overview}
-\end{figure}
-
-\begin{figure*}[t]
-    \centering
-    \includegraphics[width=\textwidth]{figures/imu_to_velocity_pipeline.png}
-    \caption{From raw IMU to the challenge score. (1) The network reads a 16\,s chunk and predicts a velocity for each of
-    its 320 tokens (20\,Hz). (2) The 20 token predictions inside a 1\,s window are averaged, and each window's estimate
-    is then a Hann-weighted average over the 8 overlapping chunks (stride 2 windows) that cover it. (3) The organisers'
-    scorer computes AVE and ATE$_{20}$ (each 20\,m segment SE(3)-aligned, RMS position error), averaged per trajectory,
-    then per platform, then over the four platforms. (4) Each term is divided by the all-zero submission's value, so
-    all-zero scores 1.000.}
-    \label{fig:eval_pipeline}
-\end{figure*}
 
 \subsection{Data Processing}
 Windows are used exactly as the organisers define them (window $k$ is \texttt{imu[200k:200k+200]}). Whole
