@@ -11,6 +11,7 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | Competition | https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026 (IROS 2026 workshop *Beyond Exteroception*) |
 | **Model weights + inference (Hugging Face)** | **https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42** |
 | Result | **final (private) leaderboard 0.1614 — rank 7 / 132**; public leaderboard 0.2861 (rank 10 / 132); official full-test score **0.219** (organisers' baseline 0.538) |
+| Award | **TartanIMU Challenge award**; invited talk at the IROS 2026 workshop *Beyond Exteroception: Interoceptive Perception for Resilient Robotics* (4 Oct 2026) |
 | Technical report | [`docs/Hack2Publish_TartanIMU_report.pdf`](docs/Hack2Publish_TartanIMU_report.pdf) · paper draft [`docs/Hack2Publish_paper_draft.pdf`](docs/Hack2Publish_paper_draft.pdf) |
 
 ## Quick start (inference only)
