@@ -114,6 +114,20 @@ The competition data is not redistributed here and remains under the challenge's
 ```
 (also in [CITATION.cff](CITATION.cff))
 
+Kaggle writeup (7th place, DOI [10.34740/KAGGLE/W/114686](https://doi.org/10.34740/KAGGLE/W/114686)):
+
+```bibtex
+@misc{hack2publish2026kagglewriteup,
+  title     = {7th Place --- One Model, Four Bodies: Trajectory Context Beats Per-Window Regression},
+  author    = {Hosen, Md. Hamid and Sami, Esfer and Ashraf, Kahakashan and Shanto, Foysal Emon},
+  year      = {2026},
+  publisher = {Kaggle},
+  note      = {Kaggle competition writeup, TartanIMU Challenge (IROS 2026)},
+  doi       = {10.34740/KAGGLE/W/114686},
+  url       = {https://www.kaggle.com/w/114686}
+}
+```
+
 ## References
 
 - S. Zhao, S. Zhou, R. Blanchard, Y. Qiu, W. Wang, S. Scherer. *Tartan IMU: A Light Foundation Model for Inertial Positioning in Robotics.* CVPR 2025.

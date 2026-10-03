@@ -19,6 +19,22 @@ repository-code: "https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Plat
 url: "https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42"
 keywords: [inertial odometry, IMU, velocity estimation, TartanIMU, IROS 2026]
 references:
+  - type: generic
+    title: "7th Place — One Model, Four Bodies: Trajectory Context Beats Per-Window Regression"
+    authors:
+      - family-names: Hosen
+        given-names: Md. Hamid
+      - family-names: Sami
+        given-names: Esfer
+      - family-names: Ashraf
+        given-names: Kahakashan
+      - family-names: Shanto
+        given-names: Foysal Emon
+    publisher:
+      name: Kaggle
+    year: 2026
+    doi: "10.34740/KAGGLE/W/114686"
+    url: "https://www.kaggle.com/w/114686"
   - type: conference-paper
     title: "Tartan IMU: A Light Foundation Model for Inertial Positioning in Robotics"
     authors:
