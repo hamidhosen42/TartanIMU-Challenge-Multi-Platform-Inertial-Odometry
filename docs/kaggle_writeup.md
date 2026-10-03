@@ -1,10 +1,11 @@
-# 10th place — One model, four bodies: trajectory context beats per-window regression
+# 7th place — One model, four bodies: trajectory context beats per-window regression
 
 **Team Hack2Publish** — Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto
 
 | | |
 |---|---|
-| Public LB | **0.28609** (10 / 131) |
+| Private LB (final) | **0.16141** (7 / 132) |
+| Public LB | 0.28609 (10 / 132) |
 | Official scoring service, all 89 sequences | **0.21903** (macro AVE 0.180 m/s, ATE20 0.563 m, RTE@5s 0.868 m) |
 | Organisers' baseline, same service | 0.538 (AVE 0.461, ATE20 1.261) |
 | Model | one network, one weight set, 3.9 M parameters, no platform input |
@@ -195,6 +196,12 @@ handful of short racing-drone clips under per-trajectory averaging.
 So every decision was made on `val` with the organisers' exact scorer (`kaggle_metric_tartanimu_score.py` from the
 starter kit — our val floor 0.013 and all-zero 1.015 match the published references), and never on the leaderboard.
 Our two selected entries are the **val-validated recipe** first and public score second.
+
+The private board confirmed the noise: the ranked recipe scored **0.1614** (Kaggle T4) and **0.1560** (laptop)
+privately, and our best private score, 0.1544 from the unselected 240-epoch wide model, would have placed 4th instead
+of 7th. The private board also sided with val over the public board on model width: all four wide-trunk runs
+(0.154–0.161 private) beat every narrow v4-recipe run (0.166–0.174), as val had suggested (0.1987 vs 0.2030), while publicly
+the two groups overlapped (0.286–0.290 vs 0.287–0.305).
 
 ---
 

@@ -12,8 +12,8 @@ it predicts the mean 3-D **body-frame velocity** of every 1 s window. Built for 
 
 | file | what |
 | --- | --- |
-| `model.pt` | **ranked entry** — Kaggle submission **56402554** (`submission_final_kaggle_w_uni.csv`, public 0.28609). 3.9 M params. SHA-256 in `SHA256SUMS`. |
-| `model_secondary_final_v4_160.pt` | second selected Kaggle entry **56332266** (public 0.28696): same pipeline, width-128 / 2-layer variant, length-weighted sampling. 1.8 M params. |
+| `model.pt` | **ranked entry** — Kaggle submission **56402554** (`submission_final_kaggle_w_uni.csv`, private 0.16141 — **7th of 132** on the final leaderboard; public 0.28609). 3.9 M params. SHA-256 in `SHA256SUMS`. |
+| `model_secondary_final_v4_160.pt` | second selected Kaggle entry **56332266** (private 0.16625, public 0.28696): same pipeline, width-128 / 2-layer variant, length-weighted sampling. 1.8 M params. |
 | `infer.py` | inference entry point (test trajectory directory + window index CSV → submission CSV) |
 | `model.py` | architecture + sliding-chunk trajectory inference |
 | `requirements.txt` | pinned environment |

@@ -10,7 +10,7 @@ across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, 
 | --- | --- |
 | Competition | https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026 (IROS 2026 workshop *Beyond Exteroception*) |
 | **Model weights + inference (Hugging Face)** | **https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42** |
-| Result | public leaderboard **0.2861** (rank 10 / 131 at close); official full-test score **0.219** (organisers' baseline 0.538) |
+| Result | **final (private) leaderboard 0.1614 — rank 7 / 132**; public leaderboard 0.2861 (rank 10 / 132); official full-test score **0.219** (organisers' baseline 0.538) |
 | Technical report | [`docs/Hack2Publish_TartanIMU_report.pdf`](docs/Hack2Publish_TartanIMU_report.pdf) · paper draft [`docs/Hack2Publish_paper_draft.pdf`](docs/Hack2Publish_paper_draft.pdf) |
 
 ## Quick start (inference only)
@@ -69,26 +69,28 @@ Reads only the `imu` array of each trajectory; one GPU (<2 GB) does the 89-traje
 4. **Physically consistent augmentation**: small random sensor-mount rotations applied to IMU *and* target
    velocity, accel/gyro bias, scale and white noise.
 
-## Results (public leaderboard)
+## Results (Kaggle leaderboard)
 
-| Submission | Val (official metric) | Public LB |
-| --- | --- | --- |
-| all-zero reference | 1.015 | 1.054 |
-| v1 — 16 s context, width 128, train only | 0.2247 | 0.378 |
-| full — v1 recipe on train+val | — | 0.3625 |
-| ens3 — v1 + v2 (32 s, width 160) + full | 0.2171 (v1+v2) | 0.3592 |
-| ens4 — ens3 + full2 (v2 recipe on train+val) | — | 0.3544 |
-| full_long — v1 recipe on train+val, 60 epochs, EMA+SWA | — | 0.3466 |
-| final_v4 — v4 recipe (drone aug + physics feats), train+val, 100 ep | — | 0.2975 |
-| **final_v4_160 — same, 160 ep (selected entry #2)** | val recipe 0.2030 | **0.2870** |
-| final_v6_160 / final_colab — wide model, 160 / 240 ep | val recipe 0.1987 | 0.2893 / 0.2897 |
-| final_n_uni_160 — v4 + uniform per-trajectory sampling, 160 ep | val recipe 0.1982 | 0.2978 |
-| final_w_uni_160 — wide + uniform sampling, 160 ep (laptop) | — | 0.2876 |
-| **final_kaggle_w_uni — same recipe trained on a Kaggle GPU (ranked, selected entry #1)** | — | **0.2861** |
+| Submission | Val (official metric) | Public LB | Private LB (final) |
+| --- | --- | --- | --- |
+| all-zero reference | 1.015 | 1.054 | — |
+| v1 — 16 s context, width 128, train only | 0.2247 | 0.378 | 0.2373 |
+| full — v1 recipe on train+val | — | 0.3625 | 0.2199 |
+| ens3 — v1 + v2 (32 s, width 160) + full | 0.2171 (v1+v2) | 0.3592 | 0.2146 |
+| ens4 — ens3 + full2 (v2 recipe on train+val) | — | 0.3544 | 0.2147 |
+| full_long — v1 recipe on train+val, 60 epochs, EMA+SWA | — | 0.3466 | 0.2077 |
+| final_v4 — v4 recipe (drone aug + physics feats), train+val, 100 ep | — | 0.2975 | 0.1738 |
+| **final_v4_160 — same, 160 ep (selected entry #2)** | val recipe 0.2030 | **0.2870** | **0.1663** |
+| final_v6_160 / final_colab — wide model, 160 / 240 ep | val recipe 0.1987 | 0.2893 / 0.2897 | 0.1589 / 0.1544 |
+| final_n_uni_160 — v4 + uniform per-trajectory sampling, 160 ep | val recipe 0.1982 | 0.2978 | 0.1677 |
+| final_w_uni_160 — wide + uniform sampling, 160 ep (laptop) | — | 0.2876 | 0.1560 |
+| **final_kaggle_w_uni — same recipe trained on a Kaggle GPU (ranked, selected entry #1)** | — | **0.2861** | **0.1614** |
+
+**Final standings** (private leaderboard, 132 teams): **7th, 0.16141** with the ranked entry (10th on the public board).
 
 **Official full-test scores** (organisers' scoring service, all 89 sequences): ranked entry **0.21903** (AVE 0.180 m/s, ATE20 0.563 m; car 0.071 / human 0.053 / dog 0.074 / drone 0.522 m/s), second entry 0.22189.
 
-Public-LB noise is ±0.01–0.02 for this family (identical recipes on different GPUs: 0.2870 vs 0.3052), so entries were chosen by val-validated recipe first.
+Public-LB noise is ±0.01–0.02 for this family (identical recipes on different GPUs: 0.2870 vs 0.3052), so entries were chosen by val-validated recipe first. The private board shows the same spread: the ranked recipe scored 0.1614 on the Kaggle GPU and 0.1560 on the laptop, and our best private score, 0.1544 (final_colab, not selected), would have placed 4th.
 
 ## Authors
 

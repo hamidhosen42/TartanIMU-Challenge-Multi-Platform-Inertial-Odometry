@@ -50,8 +50,8 @@ The TartanIMU Challenge~\cite{tartanimu} asks a different question. Four embodim
 drone and a person carrying the sensor -- share one test set with no platform labels, and the entry must be a
 single network with one set of weights. The score combines a per-window velocity error (AVE) with a 20\,m-segment
 trajectory error (ATE$_{20}$), each averaged first over the windows of a trajectory, then over the trajectories of a
-platform, then over the four platforms. This paper describes the entry of team Hack2Publish, which placed tenth on
-the public leaderboard among 131 teams, and what we learned from building it.
+platform, then over the four platforms. This paper describes the entry of team Hack2Publish, which placed seventh of
+132 teams on the final (private) leaderboard, and what we learned from building it.
 
 Our starting observation was that the per-window velocity is far from independent across windows: the lag-1
 autocorrelation is 0.85 for the car, 0.78 for the quadruped and 0.56 for the handheld sensor, and an oracle that
@@ -151,7 +151,8 @@ no post-processing. The full 89-trajectory test set takes 26\,s on a Tesla T4.
 \subsection{Setup}
 We report TartanIMU scores on the held-out \texttt{val} split for all development experiments (models trained on
 \texttt{train} only), and scores from the organisers' official scoring service on the 89 test sequences for the
-final model. The public leaderboard is computed on a subset of the test trajectories and is reported for reference.
+final model. The public and private leaderboards are each computed on about half of the test data and are reported for
+reference.
 
 \subsection{What Mattered}
 Table~\ref{tab:ablation} summarises the development record; Fig.~\ref{fig:curves} shows the training curves.
@@ -199,7 +200,7 @@ Table~\ref{tab:overall_results} and Table~\ref{tab:platform_results} give the of
 (submission md5 \texttt{fd12d4f25d7b52d44aaa4e4a14534378}). The TartanIMU Score is 0.219 against 0.538 for the
 organisers' baseline. The car, handheld and quadruped AVE are 0.071, 0.053 and 0.074\,m/s; the drone AVE is
 0.522\,m/s and, together with the drone ATE$_{20}$ of 1.04\,m, accounts for 64\,\% of the score. The public
-leaderboard score is 0.286; the public subset is dominated by short racing-drone clips (Sec.~\ref{sec:data}), and we
+leaderboard score is 0.286 and the final private leaderboard score 0.161 (seventh of 132); the public subset is dominated by short racing-drone clips (Sec.~\ref{sec:data}), and we
 measured differences of $\pm$0.01--0.02 on it between runs of the same recipe on different GPUs, so we selected our
 entries by val and not by leaderboard. Per-sequence numbers are in the challenge report in the code repository.
 \input{tables_official.tex}

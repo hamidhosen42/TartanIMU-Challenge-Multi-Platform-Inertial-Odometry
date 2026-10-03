@@ -2,7 +2,8 @@
     \centering\footnotesize
     \caption{Overall challenge performance (official scoring service, full 89-sequence test set). The TartanIMU Score is
     $0.6\,\mathrm{AVE}/0.7356 + 0.4\,\mathrm{ATE}_{20}/3.1160$, dimensionless, \emph{lower is better} (all-zero = 1.000).
-    \textbf{RTE does not enter the ranking}; it is defined in the caption of Table~\ref{tab:sequence_results}.
+    \textbf{RTE does not enter the ranking}; it is the RMSE of the relative displacement over 5\,s windows (m), following
+    Sturm \emph{et al.}~\cite{sturm2012rgbd}.
     Baseline numbers are the organizers' published full-test values.}
     \setlength{\tabcolsep}{3.5pt}
     \begin{tabular}{lcccc}
@@ -16,7 +17,7 @@
 
 \begin{table}[htbp]
     \centering\footnotesize
-    \caption{Performance by platform (official scoring service). RTE is defined in the caption of Table~\ref{tab:sequence_results}.}
+    \caption{Performance by platform (official scoring service). RTE is defined in the caption of Table~\ref{tab:overall_results}.}
     \begin{tabular}{lccc}
         \toprule Platform & ATE$_{20}$ $\downarrow$ & AVE $\downarrow$ & RTE $\downarrow$ \\ \midrule
         Wheeled / Car & 0.369 & 0.071 & 0.323 \\

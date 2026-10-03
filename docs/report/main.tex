@@ -48,8 +48,8 @@ physically exact: random re-mounting of the sensor (applied to the IMU and to th
 using the gravity vector available at training time, and bias/scale/noise. Only the challenge data was used. We chose
 every hyper-parameter on the released \texttt{val} split and then refit the final model on train+val for 160 epochs
 (EMA plus weight averaging over the last 20 epochs). On the official scoring service the submitted model reaches a
-TartanIMU Score of 0.219 over the 89 test sequences (macro AVE 0.180\,m/s, ATE$_{20}$ 0.563\,m). On the public
-leaderboard it scores 0.28609, tenth of 131 teams at the close. We also document two properties of the drone data that we
+TartanIMU Score of 0.219 over the 89 test sequences (macro AVE 0.180\,m/s, ATE$_{20}$ 0.563\,m). On the final (private)
+leaderboard it scores 0.16141, seventh of 132 teams (0.28609 and tenth on the public leaderboard). We also document two properties of the drone data that we
 believe limit every IMU-only entry, and a measured leaderboard noise of $\pm$0.01--0.02 between identical recipes.
 \end{abstract}
 
@@ -218,7 +218,7 @@ car drive; length-proportional sampling had been under-training exactly the shor
 Raising the drone share of the sampling to 40\,\% (0.2013) or adding a vibration-amplitude augmentation (0.2065) was
 worse than plain uniform sampling. The ranked entry combines uniform sampling with the wider trunk; we did not have time to validate
 that combination as a separate 60-epoch run, so its only scores are those of the train+val refit itself (0.2861 public,
-0.219 full test).
+0.1614 private, 0.219 full test).
 
 \emph{Drone-targeted augmentation.} Rotations up to $45^\circ$ for drone chunks, a fourfold oversampling of the
 racing-drone source and time dilation together moved val from 0.2247 to 0.2233, but the racing-drone trajectories
@@ -252,9 +252,10 @@ Tables~\ref{tab:overall_results}--\ref{tab:sequence_results} come from the offic
 of our ranked Kaggle submission 56402554, \texttt{md5 = \textbf{fd12d4f25d7b52d44aaa4e4a14534378}}. The service
 still lists our team under its earlier Kaggle name, ``Md.\ Hamid Hosen'' (we renamed the team to Hack2Publish on
 21 September and the whitelist had not refreshed by the time of scoring); the md5 identifies the file regardless.
-The full-test score is 0.21903; the public leaderboard score is 0.28609 (rank 10 of 131 teams at the close). Our second
+The full-test score is 0.21903; on Kaggle it scores 0.16141 on the private leaderboard (final rank 7 of 132 teams) and 0.28609 on the public
+leaderboard (rank 10). Our second
 selected entry, submission 56332266 (md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}), scores 0.22189 on the same
-service (AVE 0.181\,m/s, ATE$_{20}$ 0.581\,m). Table~\ref{tab:platform_results} shows where the score comes from:
+service (private leaderboard 0.16625; AVE 0.181\,m/s, ATE$_{20}$ 0.581\,m). Table~\ref{tab:platform_results} shows where the score comes from:
 AVE is 0.05--0.07\,m/s on car, human and dog and 0.52\,m/s on the drone, ATE$_{20}$ is 0.36--0.49\,m against
 1.04\,m, and the drone term alone is 64\,\% of our score.
 \input{tables_official.tex}
@@ -384,8 +385,8 @@ the authors' direction.
 \begin{sloppypar}\raggedright
 \textbf{Team and submissions.} Kaggle team \textbf{Hack2Publish}. Ranked submission \textbf{56402554}
 (\texttt{submission\_final\_kaggle\_w\_uni.csv}, 2026-09-20 17:34 UTC, md5 \texttt{fd12d4f25d7b52d44aaa4e4a14534378},
-public 0.28609, full test 0.21903). Second selected entry \textbf{56332266} (\texttt{submission\_final\_v4\_160.csv},
-2026-09-18 08:17 UTC, md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}, public 0.28696, full test 0.22189), the
+public 0.28609, private 0.16141, full test 0.21903). Second selected entry \textbf{56332266} (\texttt{submission\_final\_v4\_160.csv},
+2026-09-18 08:17 UTC, md5 \texttt{97a6e86dba7dfc19929e050bef5857b0}, public 0.28696, private 0.16625, full test 0.22189), the
 width-128 / 2-layer variant trained on the laptop with length-proportional sampling.
 
 \textbf{Code.} GitHub repository \ghrepo, training commit \texttt{a9a5384}; the Kaggle kernel script that trained the
@@ -403,7 +404,7 @@ inference needs no other package and no internet access.
 
 \textbf{Seeds and spread.} Seed 0 everywhere; every reported score is a single run. The run-to-run spread on the
 public leaderboard is large: the same recipe trained on two different GPUs scored 0.2870 and 0.3052, and the ranked
-recipe scored 0.2861 on the Kaggle GPU and 0.2876 on the laptop. Inference itself is deterministic up to device
+recipe scored 0.2861 on the Kaggle GPU and 0.2876 on the laptop (0.1614 and 0.1560 on the private leaderboard). Inference itself is deterministic up to device
 arithmetic; re-running \texttt{infer.py} on another device reproduces the submitted CSV to within 0.005\,m/s per
 window (TF32 disabled).
 
