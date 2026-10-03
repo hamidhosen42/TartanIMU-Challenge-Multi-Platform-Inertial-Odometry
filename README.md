@@ -60,6 +60,8 @@ Reads only the `imu` array of each trajectory; one GPU (<2 GB) does the 89-traje
 
 ## Approach
 
+![From raw IMU to the challenge score: 16 s chunk → conv stem → dilated TCN → transformer → 20 Hz velocity → per-window average → AVE / ATE20 → TartanIMU Score](docs/report/figures/imu_to_velocity_pipeline.png)
+
 1. **Context, not isolated windows.** Test trajectories are given whole and windows are contiguous, so the model
    reads 16 s chunks (past *and* future) and predicts every window in the chunk; at inference chunks slide with
    overlap and are Hann-weighted-averaged. (Velocity lag-1 autocorrelation is 0.85 car / 0.78 dog / 0.56 human.)

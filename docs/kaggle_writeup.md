@@ -48,6 +48,8 @@ bias, low-frequency tilt, or the embodiment; sixteen seconds is.
 
 ## 2. Model
 
+![From raw IMU to the challenge score](https://raw.githubusercontent.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry/main/docs/report/figures/imu_to_velocity_pipeline.png)
+
 ```
 raw IMU chunk (16 s, 200 Hz, 6 ch, gravity retained)
    → conv stem (k9/s2, k11/s5) → 20 Hz tokens, width 192
