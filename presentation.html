@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One Model, Four Bodies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --stage:#0B1222;
+  --navy:#13233F;
+  --paper:#FFFFFF;
+  --soft:#EEF1F6;
+  --ink:#13233F;
+  --ink-2:#4A5569;
+  --muted:#8A93A3;
+  --gray:#C5CBD5;
+  --blue:#2456D6;
+  --coral:#E8553D;
+  --teal:#0F9D76;
+  --amber:#F0A22E;
+  --violet:#6A4BC4;
+  --p-car:var(--blue); --p-dog:var(--amber); --p-human:var(--teal); --p-drone:var(--coral);
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--stage);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-font-smoothing:antialiased}
+.stage{position:fixed;inset:0}
+p{margin:0}
+
+/* ---------- slide canvas: 1920×1080, scaled to fit ---------- */
+.slide{position:absolute;left:50%;top:50%;width:1920px;height:1080px;margin:-540px 0 0 -960px;
+  transform:scale(var(--s,.5));background:var(--paper);padding:96px 130px 0;display:flex;flex-direction:column;
+  overflow:hidden;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .3s ease}
+.slide .notes{display:none}
+.slide.dark{background:var(--navy);color:#fff}
+.slide.blue{background:var(--blue);color:#fff}
+
+.kicker{display:inline-block;align-self:flex-start;font-family:var(--f-mono);font-size:22px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--navy);color:#fff;padding:8px 16px;border-radius:6px;margin-bottom:26px}
+.dark .kicker,.blue .kicker{background:#fff;color:var(--navy)}
+.title{font-family:var(--f-display);font-weight:800;font-stretch:110%;font-size:72px;line-height:1.05;letter-spacing:-.015em;margin:0 0 56px;max-width:1600px;text-wrap:balance}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:48px;padding-bottom:40px}
+.foot{height:80px;flex:none;display:flex;justify-content:space-between;align-items:center;font-family:var(--f-mono);font-size:19px;color:var(--muted)}
+.dark .foot,.blue .foot{color:rgba(255,255,255,.6)}
+.foot .num{font-variant-numeric:tabular-nums}
+.progress{position:absolute;left:0;bottom:0;height:8px;background:var(--coral)}
+
+.row{display:grid;gap:32px}
+.r2{grid-template-columns:1fr 1fr} .r3{grid-template-columns:repeat(3,1fr)} .r4{grid-template-columns:repeat(4,1fr)}
+.split{display:grid;grid-template-columns:1.35fr 1fr;gap:90px;align-items:center}
+
+/* solid blocks */
+.blk{border-radius:20px;padding:40px 40px 38px;display:flex;flex-direction:column;gap:14px;color:#fff}
+.blk.b{background:var(--blue)} .blk.c{background:var(--coral)} .blk.t{background:var(--teal)} .blk.a{background:var(--amber);color:var(--navy)}
+.blk.n{background:var(--navy)} .blk.s{background:var(--soft);color:var(--ink)} .blk.v{background:var(--violet)} .blk.w{background:#fff;color:var(--ink)}
+.blk .v{font-family:var(--f-display);font-weight:800;font-stretch:112%;font-size:110px;line-height:.95;letter-spacing:-.02em}
+.blk .v small{font-size:.4em;font-weight:700;margin-left:6px;opacity:.85}
+.blk .l{font-size:27px;line-height:1.35;opacity:.92}
+.blk .h{font-family:var(--f-display);font-stretch:108%;font-weight:800;font-size:38px;line-height:1.1}
+.blk .p{font-size:27px;line-height:1.4;opacity:.92}
+.blk .tag{font-family:var(--f-mono);font-size:20px;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+
+.say{font-size:36px;line-height:1.4;color:var(--ink-2);max-width:30em}
+.say b{color:var(--ink);font-weight:600}
+.dark .say,.blue .say{color:rgba(255,255,255,.85)} .dark .say b,.blue .say b{color:#fff}
+.mono{font-family:var(--f-mono)}
+sub{font-size:.65em;line-height:0}
+
+/* bar charts in plain HTML */
+.bars{display:flex;flex-direction:column;gap:26px}
+.bar-row{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:24px}
+.bar-row .name{font-family:var(--f-display);font-weight:700;font-size:30px;text-align:right}
+.track{display:flex;flex-direction:column;gap:6px}
+.bar{height:40px;border-radius:6px;display:flex;align-items:center;padding:0 14px;font-family:var(--f-mono);font-size:22px;font-weight:500;color:#fff;white-space:nowrap;min-width:fit-content}
+.bar.g{background:var(--gray);color:var(--ink)} .bar.b{background:var(--blue)} .bar.c{background:var(--coral)} .bar.n{background:var(--navy)}
+.bar.t{background:var(--teal)} .bar.a{background:var(--amber);color:var(--navy)}
+.bv{display:flex;align-items:center;gap:14px}
+.bv .bar{min-width:0;padding:0}
+.bv span{font-family:var(--f-mono);font-size:22px;font-weight:500;color:var(--ink)}
+.legend{display:flex;gap:34px;font-family:var(--f-mono);font-size:22px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:10px}
+.sw{width:22px;height:22px;border-radius:4px;display:inline-block}
+
+.abl .bar-row{grid-template-columns:600px 1fr}
+.abl .name{font-family:var(--f-body);font-weight:500;font-size:27px;text-align:left}
+.abl .bar{height:48px;font-size:24px}
+
+/* pipeline */
+.pipe{display:flex;align-items:stretch;gap:0}
+.pipe .st{flex:1;border-radius:18px;padding:30px 26px;color:#fff;display:flex;flex-direction:column;gap:12px}
+.pipe .st .h{font-family:var(--f-display);font-weight:800;font-stretch:106%;font-size:32px;line-height:1.1}
+.pipe .st .p{font-size:23px;line-height:1.35;opacity:.9}
+.pipe .ar{flex:none;width:46px;display:grid;place-items:center;font-size:36px;color:var(--ink-2);font-weight:700}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:16px}
+.chip{font-family:var(--f-display);font-weight:700;font-size:30px;padding:16px 28px;border-radius:12px;color:#fff}
+
+/* table */
+.tbl{border-collapse:collapse;width:100%;font-size:32px;font-variant-numeric:tabular-nums}
+.tbl th{font-family:var(--f-mono);font-weight:500;font-size:20px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 20px 16px}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td{padding:20px;text-align:right;background:var(--soft);border-bottom:6px solid #fff}
+.tbl td:first-child{font-family:var(--f-display);font-weight:700;border-radius:10px 0 0 10px}
+.tbl td:last-child{border-radius:0 10px 10px 0}
+.tbl tr.hot td{background:var(--coral);color:#fff;font-weight:600}
+
+/* stacked share bar */
+.share{display:flex;height:64px;border-radius:10px;overflow:hidden;font-family:var(--f-mono);font-size:24px;font-weight:500}
+.share div{display:flex;align-items:center;padding:0 16px;color:#fff;white-space:nowrap}
+
+/* title + closing */
+.hero{font-family:var(--f-display);font-weight:900;font-stretch:120%;font-size:170px;line-height:.92;letter-spacing:-.03em;margin:40px 0 30px}
+.hero em{font-style:normal;color:var(--amber)}
+.sub{font-family:var(--f-display);font-stretch:104%;font-weight:600;font-size:46px;color:rgba(255,255,255,.85)}
+.bodies{display:flex;gap:16px;margin-top:56px}
+.team{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:70px;gap:40px}
+.team .who{font-size:30px;line-height:1.5;color:rgba(255,255,255,.75)}
+.team .who b{color:#fff;font-weight:600}
+.pill{font-family:var(--f-mono);font-size:26px;font-weight:500;background:var(--amber);color:var(--navy);border-radius:999px;padding:16px 30px;white-space:nowrap}
+.links{display:flex;flex-direction:column;gap:26px}
+.link-row{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:baseline}
+.link-row .k{font-family:var(--f-mono);font-size:22px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.link-row a{font-family:var(--f-mono);font-size:28px;color:#fff;text-decoration:none;overflow-wrap:anywhere}
+.link-row a:hover{text-decoration:underline}
+
+/* Q&A */
+.qa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px}
+.qa .blk{padding:30px 32px;gap:10px}
+.qa .h{font-size:30px}
+.qa .p{font-size:23px}
+
+/* ---------- controls (outside the slide canvas) ---------- */
+.hud{position:fixed;right:18px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;align-items:center;
+  background:rgba(11,18,34,.9);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px;
+  font-family:var(--f-mono);font-size:13px;color:#C9D1DD;transition:opacity .4s ease;z-index:10}
+.hud.idle{opacity:0}
+.hud button{font:inherit;color:inherit;background:transparent;border:0;border-radius:8px;padding:8px 11px;cursor:pointer}
+.hud button:hover{background:rgba(255,255,255,.1);color:#fff}
+.hud button:focus-visible{outline:2px solid #9ec5f4;outline-offset:1px}
+.hud .count{padding:0 8px;font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
+.notes-panel{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom,0px));width:min(900px,calc(100% - 32px));max-height:38vh;overflow:auto;
+  background:rgba(11,18,34,.95);color:#E6EAF0;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px 24px;font-size:17px;line-height:1.55;z-index:9}
+.notes-panel .label{font-family:var(--f-mono);color:#9ec5f4;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.hint{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(11,18,34,.92);color:#E6EAF0;
+  font-family:var(--f-mono);font-size:13px;padding:10px 16px;border-radius:10px;transition:opacity .6s ease;z-index:10;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}
+.hint.gone{opacity:0;pointer-events:none}
+
+@media (prefers-reduced-motion: reduce){.slide,.slide.active,.hud,.hint{transition:none}}
+
+/* ---------- print: one slide per page (Ctrl/Cmd+P → Save as PDF) ---------- */
+@page{size:1920px 1080px;margin:0}
+@media print{
+  html,body{height:auto;overflow:visible;background:#fff}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .stage{position:static}
+  .slide{position:relative;left:auto;top:auto;margin:0;transform:none!important;opacity:1;visibility:visible;break-after:page;page-break-after:always}
+  .hud,.notes-panel,.hint{display:none!important}
+}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+
+<!-- 1 · Title -->
+<section class="slide dark" data-title="Title" data-end="0:40">
+  <div class="kicker">TartanIMU Challenge · IROS 2026 · Beyond Exteroception</div>
+  <h1 class="hero">One model,<br><em>four bodies.</em></h1>
+  <p class="sub">Trajectory context beats per-window regression</p>
+  <div class="bodies">
+    <span class="chip" style="background:var(--p-car)">Car</span>
+    <span class="chip" style="background:var(--p-dog);color:var(--navy)">Quadruped</span>
+    <span class="chip" style="background:var(--p-human)">Handheld</span>
+    <span class="chip" style="background:var(--p-drone)">Drone</span>
+  </div>
+  <div class="team">
+    <div class="who"><b>Md Esfer Abdus Sami</b> · Team Hack2Publish<br>with Md. Hamid Hosen, Kahakashan Ashraf, Foysal Emon Shanto</div>
+    <div class="pill">Challenge award · 7th of 132</div>
+  </div>
+  <aside class="notes">Hello everyone, I'm Md Esfer Abdus Sami from team Hack2Publish, with Md. Hamid Hosen, Kahakashan Ashraf and Foysal Emon Shanto. First, thank you to the committee for the award and for inviting us. Our entry is one network, with one set of weights, for all four bodies: a car, a quadruped, a handheld device and a drone. The one idea behind it: read the whole trajectory, not one second at a time.</aside>
+</section>
+
+<!-- 2 · Result -->
+<section class="slide" data-title="Result" data-end="1:15">
+  <div class="kicker">Result</div>
+  <h2 class="title">59 % below the organisers' baseline, with one small network</h2>
+  <div class="body">
+    <div class="row r4">
+      <div class="blk b"><div class="v">0.219</div><div class="l">Our score, full test set (89 sequences). Lower is better.</div></div>
+      <div class="blk s"><div class="v">0.538</div><div class="l">Organisers' baseline, same scoring service</div></div>
+      <div class="blk n"><div class="v">7<small>/ 132</small></div><div class="l">Final private leaderboard (10th on public)</div></div>
+      <div class="blk t"><div class="v">3.9<small>M</small></div><div class="l">Parameters. Whole test set in 26 s on one T4.</div></div>
+    </div>
+    <p class="say">No ensembling, no test-time augmentation, no platform label, no external data.</p>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">The result first. On the official scoring service, across all 89 test sequences, we score 0.219 against the baseline's 0.538, which is 59 percent lower. We finished seventh of 132 on the final private leaderboard, up from tenth on the public board. The model has 3.9 million parameters, gets no platform label, and runs the full test set in 26 seconds on a single T4.</aside>
+</section>
+
+<!-- 3 · Task -->
+<section class="slide" data-title="The task" data-end="1:50">
+  <div class="kicker">The task</div>
+  <h2 class="title">Raw IMU in, body-frame velocity out, for four very different bodies</h2>
+  <div class="body">
+    <div class="pipe">
+      <div class="st" style="background:var(--navy)"><div class="h">IMU · 200 Hz</div><div class="p">accelerometer + gyroscope, 6 channels</div></div>
+      <div class="ar">→</div>
+      <div class="st" style="background:var(--blue)"><div class="h">One model</div><div class="p">no platform label at test time</div></div>
+      <div class="ar">→</div>
+      <div class="st" style="background:var(--teal)"><div class="h">Velocity</div><div class="p">mean v<sub>x</sub>, v<sub>y</sub>, v<sub>z</sub> for every 1 s window</div></div>
+    </div>
+    <div class="row r2">
+      <div class="blk s"><div class="tag">Score</div><div class="h mono" style="font-size:32px;font-weight:500">0.6 · AVE + 0.4 · ATE<sub>20</sub></div><div class="p">each normalised; averaged per trajectory, then equally over the four platforms</div></div>
+      <div class="blk s"><div class="tag">Why it's hard</div><div class="p">Gravity, bias and mounting hide inside the same six numbers. Speeds and vibration differ ten-fold between bodies.</div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">The task: from raw 200 hertz accelerometer and gyroscope, predict the mean body-frame velocity of every one-second window. One model handles all four bodies, and at test time it isn't told which one it is looking at. The score mixes velocity error and a trajectory error over 20-metre segments, averaged per trajectory and then equally over platforms. Remember that averaging, because we shaped training around it.</aside>
+</section>
+
+<!-- 4 · Key idea -->
+<section class="slide" data-title="Key idea" data-end="2:30">
+  <div class="kicker">Key idea</div>
+  <h2 class="title">A window's neighbours already know most of its answer</h2>
+  <div class="body">
+    <div class="split">
+      <div class="stack bars">
+        <div class="legend"><span><i class="sw" style="background:var(--gray)"></i>predict zero</span><span><i class="sw" style="background:var(--blue)"></i>average of the 2 neighbours</span></div>
+        <div class="bar-row"><span class="name">Car</span><div class="track"><div class="bv"><div class="bar g" style="width:33%"></div><span>0.59</span></div><div class="bv"><div class="bar b" style="width:11%"></div><span>0.20</span></div></div></div>
+        <div class="bar-row"><span class="name">Dog</span><div class="track"><div class="bv"><div class="bar g" style="width:28%"></div><span>0.50</span></div><div class="bv"><div class="bar b" style="width:8.5%"></div><span>0.15</span></div></div></div>
+        <div class="bar-row"><span class="name">Human</span><div class="track"><div class="bv"><div class="bar g" style="width:14.6%"></div><span>0.26</span></div><div class="bv"><div class="bar b" style="width:9.3%"></div><span>0.17</span></div></div></div>
+        <div class="bar-row"><span class="name">Drone</span><div class="track"><div class="bv"><div class="bar g" style="width:86%"></div><span>1.56</span></div><div class="bv"><div class="bar b" style="width:52%"></div><span>0.94</span></div></div></div>
+        <div class="legend" style="font-size:19px;color:var(--muted)">mean per-window error on val, m/s</div>
+      </div>
+      <div class="blk n" style="gap:22px">
+        <div class="h" style="font-size:44px">1 s can't see bias, tilt or the body.<br><span style="color:var(--amber)">16 s can.</span></div>
+        <div class="p">Test trajectories are given whole, so using context is within the rules.</div>
+      </div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">Before training anything, we checked how much a window's neighbours know about it. Just averaging the true velocity of the two neighbouring windows cuts the error of predicting zero by about two thirds on car and dog. So the answer is mostly in the neighbourhood, and a per-window model throws it away. The test trajectories are given whole, so using that context is allowed. That decided the design.</aside>
+</section>
+
+<!-- 5 · Model -->
+<section class="slide" data-title="Model" data-end="3:05">
+  <div class="kicker">Model</div>
+  <h2 class="title">Read 16 seconds at once, predict a velocity every 50 ms</h2>
+  <div class="body">
+    <div class="pipe">
+      <div class="st" style="background:var(--navy)"><div class="h">16 s raw IMU</div><div class="p">3200 × 6, gravity kept</div></div>
+      <div class="ar">→</div>
+      <div class="st" style="background:var(--blue)"><div class="h">Conv stem</div><div class="p">200 Hz → 20 Hz tokens</div></div>
+      <div class="ar">→</div>
+      <div class="st" style="background:var(--violet)"><div class="h">Dilated TCN</div><div class="p">8 blocks, ≈ 13 s receptive field</div></div>
+      <div class="ar">→</div>
+      <div class="st" style="background:var(--teal)"><div class="h">Transformer</div><div class="p">3 layers over the whole chunk</div></div>
+      <div class="ar">→</div>
+      <div class="st" style="background:var(--coral)"><div class="h">Velocity</div><div class="p">per token → mean per window</div></div>
+    </div>
+    <div class="row r3">
+      <div class="blk s"><div class="h">One weight set</div><div class="p">No platform input or routing. The body is inferred from the signal.</div></div>
+      <div class="blk s"><div class="h">Physics features</div><div class="p">Integrated gyro orientation and gravity estimate, no learned weights.</div></div>
+      <div class="blk s"><div class="h">Small</div><div class="p">3.9 M parameters, trained in 3.6 h on one Kaggle T4.</div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">The model reads a 16-second chunk of raw IMU. A convolution stem brings it down to 20 hertz tokens, eight dilated convolution blocks give about 13 seconds of receptive field, and a small three-layer transformer mixes the whole chunk. It outputs a velocity every 50 milliseconds, and we average those within each window. We also add a few strap-down physics features, like the integrated gyro orientation. One weight set, no platform input.</aside>
+</section>
+
+<!-- 6 · Training + inference -->
+<section class="slide" data-title="Training and inference" data-end="3:50">
+  <div class="kicker">Training & inference</div>
+  <h2 class="title">Train the way the metric scores</h2>
+  <div class="body">
+    <div class="row r2">
+      <div class="blk b"><div class="tag">Loss</div><div class="h">Window error + drift error</div><div class="p">A Huber loss for velocity (AVE) plus a loss on the accumulated drift that ATE<sub>20</sub> sees.</div></div>
+      <div class="blk t"><div class="tag">Sampling</div><div class="h">Platform → trajectory → chunk</div><div class="p">Uniform at each step, like the metric. A short drone clip counts as much as a long drive.</div></div>
+      <div class="blk a"><div class="tag">Augmentation</div><div class="h">Respects the physics</div><div class="p">Random re-mounting, time dilation and sensor bias, applied to the label too.</div></div>
+      <div class="blk n"><div class="tag">Inference</div><div class="h">8 overlapping chunks per window</div><div class="p">Stride 2, centre-weighted average. Nothing else: no TTA, no smoothing.</div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">Training follows the metric. The loss has a window velocity term and a drift term on the integrated error, which is what the trajectory metric measures. We sample a platform uniformly, then a trajectory uniformly, then a chunk, exactly how the metric averages. Augmentation is physical: random re-mounting rotations, time dilation and sensor bias, applied to the label too. At test time each window is covered by eight overlapping chunks, and we trust the chunk where it sits near the centre most.</aside>
+</section>
+
+<!-- 7 · Ablation -->
+<section class="slide" data-title="What moved the score" data-end="4:25">
+  <div class="kicker">What moved the score · val</div>
+  <h2 class="title">Context did most of the work</h2>
+  <div class="body">
+    <div class="bars abl">
+      <div class="bar-row"><span class="name">Per-window ResNet (starter)</span><div><div class="bar g" style="width:94%">≈ 0.300</div></div></div>
+      <div class="bar-row"><span class="name"><b>+ 16 s context</b></span><div><div class="bar b" style="width:70%">0.225 &nbsp;−0.075</div></div></div>
+      <div class="bar-row"><span class="name">+ drone augmentation</span><div><div class="bar n" style="width:69.5%">0.223</div></div></div>
+      <div class="bar-row"><span class="name">+ 60 epochs instead of 30</span><div><div class="bar n" style="width:63.4%">0.203</div></div></div>
+      <div class="bar-row"><span class="name">+ uniform per-trajectory sampling</span><div><div class="bar t" style="width:62%">0.198</div></div></div>
+    </div>
+    <p class="say"><b>No gain:</b> 32 s context, rotation TTA, smoothing, denser overlap.</p>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">Here's our ablation on the held-out validation split, using the organisers' exact scorer. A per-window ResNet, like the starter kernel, is around 0.30. Adding 16-second context took it to 0.225 in one step, which is most of our total gain. After that the steps were small: drone augmentation, longer training and uniform sampling brought it to 0.198. Longer context, test-time augmentation and smoothing did not help.</aside>
+</section>
+
+<!-- 8 · Per platform -->
+<section class="slide" data-title="Results by platform" data-end="5:00">
+  <div class="kicker">Results by platform · full test</div>
+  <h2 class="title">The drone is 7 % of the test windows but 64 % of our score</h2>
+  <div class="body">
+    <div class="split" style="grid-template-columns:1.1fr 1fr;align-items:start">
+      <table class="tbl">
+        <thead><tr><th>Platform</th><th>AVE (m/s)</th><th>ATE<sub>20</sub> (m)</th></tr></thead>
+        <tbody>
+          <tr><td>Car</td><td>0.071</td><td>0.369</td></tr>
+          <tr><td>Human</td><td>0.053</td><td>0.490</td></tr>
+          <tr><td>Quadruped</td><td>0.074</td><td>0.358</td></tr>
+          <tr class="hot"><td>Drone</td><td>0.522</td><td>1.037</td></tr>
+        </tbody>
+      </table>
+      <div style="display:flex;flex-direction:column;gap:34px;padding-top:44px">
+        <div class="legend"><span><i class="sw" style="background:var(--coral)"></i>drone</span><span><i class="sw" style="background:var(--navy)"></i>car + human + dog</span></div>
+        <div><p class="mono" style="font-size:22px;color:var(--ink-2);margin-bottom:10px">Test windows</p>
+          <div class="share"><div style="width:93%;background:var(--navy)">93 %</div><div style="width:7%;background:var(--coral);padding:0"></div></div></div>
+        <div><p class="mono" style="font-size:22px;color:var(--ink-2);margin-bottom:10px">Share of our score</p>
+          <div class="share"><div style="width:36%;background:var(--navy)">36 %</div><div style="width:64%;background:var(--coral)">64 %</div></div></div>
+      </div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">The official per-platform numbers. Car, human and quadruped all sit at five to seven centimetres per second. The drone is at 0.52. Drone clips are short, so the drone is only 7 percent of the test windows, but because every platform counts equally it makes up 64 percent of our score. So the question is: what is special about the drone data?</aside>
+</section>
+
+<!-- 9 · Drone data -->
+<section class="slide" data-title="Drone data findings" data-end="5:50">
+  <div class="kicker">Why the drone is hard</div>
+  <h2 class="title">The racing-drone error sits in the labels, not the model</h2>
+  <div class="body">
+    <div class="row r2">
+      <div class="blk t"><div class="tag">Drone-B · 3.4 h</div><div class="h">Gyro z axis is inverted</div><div class="p">Relative to its own ground-truth frame (R² = 0.97). The network copes, but what it learns doesn't transfer.</div><div class="tag" style="margin-top:auto">val error per flight</div><div class="v" style="font-size:72px">0.16–0.43 <small>m/s</small></div></div>
+      <div class="blk c"><div class="tag">Drone-A racing · 30 min</div><div class="h">Each flight is recorded twice, and they disagree</div><div class="p">Two IMUs per flight. After best alignment, their velocity labels still differ by 0.15–0.9 m/s.</div><div class="tag" style="margin-top:auto">val error per flight</div><div class="v" style="font-size:72px">0.43–0.78 <small>m/s</small></div></div>
+    </div>
+    <p class="say">More capacity, epochs or augmentation <b>never moved the racing-drone error</b>.</p>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">The drone data comes from two sources. Drone-B has its gyro z axis inverted relative to its own ground truth. The network copes, because that source is easy to recognise, and its error per flight sits between 0.16 and 0.43 metres per second. Drone-A, the racing drone, is recorded twice per flight by two IMUs, and even after the best alignment their velocity labels disagree by up to 0.9 metres per second. Its error stayed high no matter what we changed. All of this is measured on train and val only.</aside>
+</section>
+
+<!-- 10 · Evaluation -->
+<section class="slide" data-title="Evaluation" data-end="6:30">
+  <div class="kicker">Evaluation</div>
+  <h2 class="title">Trust local validation, not the public board</h2>
+  <div class="body">
+    <div class="split" style="grid-template-columns:1fr 1fr">
+      <div class="bars" style="gap:30px">
+        <div class="bar-row" style="grid-template-columns:1fr"><span class="name" style="text-align:left;font-size:27px;font-weight:500;font-family:var(--f-body)">Same recipe, two GPUs: public-board change</span><div class="bar c" style="width:88%">0.018</div></div>
+        <div class="bar-row" style="grid-template-columns:1fr"><span class="name" style="text-align:left;font-size:27px;font-weight:500;font-family:var(--f-body)">Uniform sampling: real val gain</span><div class="bar b" style="width:23%">0.005</div></div>
+        <p class="say" style="font-size:30px">Noise was bigger than most real improvements, so every decision was made on val with the organisers' exact scorer.</p>
+      </div>
+      <div class="row r2" style="gap:24px">
+        <div class="blk s"><div class="v" style="font-size:80px">0.198</div><div class="l">Val</div></div>
+        <div class="blk b"><div class="v" style="font-size:80px">0.219</div><div class="l">Full test</div></div>
+        <div class="blk s"><div class="v" style="font-size:80px">0.286</div><div class="l">Public split</div></div>
+        <div class="blk n"><div class="v" style="font-size:80px">0.161</div><div class="l">Private, final</div></div>
+      </div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">A practical lesson. Training the identical recipe on two GPUs moved the public score by 0.018, more than most of our real improvements. The public split is dominated by a few short racing-drone clips. So we decided everything on validation with the organisers' exact scorer. Val tracked the full test well: 0.198 against 0.219. The public split gave 0.286 and the final private board 0.161; each board uses about half of the test data.</aside>
+</section>
+
+<!-- 11 · Lessons -->
+<section class="slide blue" data-title="Takeaways" data-end="7:10">
+  <div class="kicker">Takeaways</div>
+  <h2 class="title">One universal inertial model works. The bottleneck is the data.</h2>
+  <div class="body">
+    <div class="row r3">
+      <div class="blk w"><div class="h">Context wins</div><div class="p">Reading 16 s at once gave most of the gain. No negative transfer between bodies.</div></div>
+      <div class="blk w"><div class="h">Next for us</div><div class="p">Estimate bias, gravity and time offset explicitly. Build a causal, real-time version.</div></div>
+      <div class="blk w"><div class="h">For the benchmark</div><div class="p">Document frame conventions and sync per source. Declare the duplicate racing recordings.</div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">To sum up. A single universal inertial model works: five to seven centimetres per second on three very different bodies, with no platform label and no negative transfer. Most of that came from reading whole trajectories. Next, we'd estimate bias, gravity and time offset explicitly and build a causal version for real-time use. For the benchmark, we'd suggest documenting frame conventions and synchronisation per source, and declaring the duplicate racing recordings.</aside>
+</section>
+
+<!-- 12 · Thanks -->
+<section class="slide dark" data-title="Thank you" data-end="7:35">
+  <div class="kicker">Thank you</div>
+  <h2 class="hero" style="font-size:180px;margin-top:20px">Questions?</h2>
+  <div class="links" style="margin-top:auto;padding-bottom:80px">
+    <div class="link-row"><span class="k">Weights</span><a href="https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42" target="_blank" rel="noopener">huggingface.co/mdhamidhosen/tartanimu-unified-hosen42</a></div>
+    <div class="link-row"><span class="k">Code</span><a href="https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry" target="_blank" rel="noopener">github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry</a></div>
+    <div class="link-row"><span class="k">Writeup</span><a href="https://doi.org/10.34740/KAGGLE/W/114686" target="_blank" rel="noopener">doi.org/10.34740/KAGGLE/W/114686</a></div>
+  </div>
+  <aside class="notes">That's our entry. The weights are on Hugging Face, the code and the technical report are on GitHub, and the writeup is on Kaggle. Thank you to the CMU AirLab team for the dataset, the exact scorer and the scoring service. Happy to take questions.</aside>
+</section>
+
+<!-- Backup -->
+<section class="slide" data-title="Backup: likely questions">
+  <div class="kicker">Backup · likely questions</div>
+  <h2 class="title" style="margin-bottom:40px">Questions we expect</h2>
+  <div class="body">
+    <div class="qa">
+      <div class="blk s"><div class="h">vs RoNIN, TLIO, AirIO?</div><div class="p">They regress from 1–2 s windows or fuse in an EKF. We predict a whole 16 s span and average overlaps.</div></div>
+      <div class="blk s"><div class="h">vs Tartan IMU baseline?</div><div class="p">It uses per-platform heads. The challenge forbids routing, so we have none.</div></div>
+      <div class="blk s"><div class="h">Real time?</div><div class="p">No. It is offline and uses future samples. A causal version needs a different design.</div></div>
+      <div class="blk s"><div class="h">How reliable?</div><div class="p">Seed 0, single runs. Same-recipe reruns moved the public score by up to 0.018, the private by 0.005.</div></div>
+      <div class="blk s"><div class="h">Test labels?</div><div class="p">Never used. Drone findings come from train and val files only.</div></div>
+      <div class="blk s"><div class="h">Why not ensemble?</div><div class="p">Ranked entries had to be one weight set. Ensemble: 0.2171 on val, never ranked.</div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+  <aside class="notes">Backup slide. Only open it if a question needs it.</aside>
+</section>
+
+</main>
+
+<div class="hint" id="hint">→ / Space: next · ← : back · F: fullscreen · P: presenter notes · N: notes here</div>
+<div class="notes-panel" id="notesPanel" hidden><div class="label">Speaker notes</div><div id="notesText"></div></div>
+<nav class="hud" id="hud" aria-label="Slide controls">
+  <button type="button" id="bPrev" aria-label="Previous slide">←</button>
+  <span class="count" id="count">1 / 13</span>
+  <button type="button" id="bNext" aria-label="Next slide">→</button>
+  <button type="button" id="bNotes" title="Show notes on this screen (N)">Notes</button>
+  <button type="button" id="bPres" title="Open presenter window (P)">Presenter</button>
+  <button type="button" id="bFull" title="Fullscreen (F)">Full screen</button>
+</nav>
+
+<script>
+/* ---------------- deck controller ---------------- */
+const slides = [...document.querySelectorAll('.slide')];
+const n = slides.length;
+let cur = 0;
+slides.forEach((sl, i) => {
+  const num = sl.querySelector('.foot .num'); if (num) num.textContent = String(i + 1).padStart(2, '0') + ' / ' + n;
+  const bar = document.createElement('div'); bar.className = 'progress'; bar.style.width = ((i + 1) / n * 100) + '%'; sl.appendChild(bar);
+});
+function fit(){
+  const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  document.documentElement.style.setProperty('--s', s);
+}
+const count = document.getElementById('count');
+const notesPanel = document.getElementById('notesPanel'), notesText = document.getElementById('notesText');
+function notesOf(i){ const a = slides[i] && slides[i].querySelector('.notes'); return a ? a.textContent.trim() : ''; }
+function go(i){
+  cur = Math.max(0, Math.min(n - 1, i));
+  slides.forEach((sl, j) => { sl.classList.toggle('active', j === cur); sl.setAttribute('aria-hidden', j === cur ? 'false' : 'true'); });
+  count.textContent = (cur + 1) + ' / ' + n;
+  notesText.textContent = notesOf(cur);
+  try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) {}
+  syncPresenter();
+}
+function next(){ go(cur + 1); } function prev(){ go(cur - 1); }
+function toggleFull(){
+  if (document.fullscreenElement) { document.exitFullscreen && document.exitFullscreen().catch(() => {}); }
+  else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(() => {}); }
+}
+function toggleNotes(){ notesPanel.hidden = !notesPanel.hidden; }
+
+/* presenter window: notes, next slide, timer */
+let pv = null, t0 = null;
+function openPresenter(){
+  if (pv && !pv.closed) { pv.focus(); return; }
+  pv = window.open('', 'deck-presenter', 'width=980,height=720');
+  if (!pv) return;
+  t0 = Date.now();
+  pv.document.open();
+  pv.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Presenter · One Model, Four Bodies</title>
+<style>body{margin:0;background:#0E131C;color:#E6EAF0;font:18px/1.55 "IBM Plex Sans",system-ui,sans-serif;padding:28px 34px}
+.top{display:flex;justify-content:space-between;align-items:baseline;font-family:ui-monospace,Menlo,monospace;color:#9ec5f4;font-size:15px;letter-spacing:.06em}
+#timer{font-size:34px;color:#fff;font-variant-numeric:tabular-nums}
+h1{font-size:30px;margin:14px 0 18px;font-weight:600}
+#notes{font-size:24px;line-height:1.6;max-width:46em;color:#F2F4F8}
+.next{margin-top:28px;padding-top:16px;border-top:1px solid #2A3344;color:#8A93A3;font-size:16px}
+button{font:inherit;font-size:15px;background:#1E2736;color:#E6EAF0;border:1px solid #333D50;border-radius:8px;padding:8px 14px;cursor:pointer;margin-right:8px}
+</style></head><body>
+<div class="top"><span id="pos"></span><span id="tgt"></span><span id="timer">00:00</span></div>
+<h1 id="ttl"></h1><div id="notes"></div>
+<div class="next">Next: <span id="nxt"></span></div>
+<p style="margin-top:22px"><button id="p">← Back</button><button id="n">Next →</button><button id="r">Reset timer</button></p>
+<script>
+const send=k=>window.opener&&window.opener.postMessage({deckKey:k},'*');
+document.addEventListener('keydown',e=>{send(e.key);if([' ','ArrowDown','ArrowUp','PageDown','PageUp'].includes(e.key))e.preventDefault();});
+document.getElementById('p').onclick=()=>send('ArrowLeft');document.getElementById('n').onclick=()=>send('ArrowRight');document.getElementById('r').onclick=()=>send('__reset');
+<\/script></body></html>`);
+  pv.document.close();
+  syncPresenter();
+}
+function syncPresenter(){
+  if (!pv || pv.closed) return;
+  const d = pv.document; if (!d.getElementById('ttl')) return;
+  d.getElementById('pos').textContent = 'SLIDE ' + (cur + 1) + ' / ' + n;
+  d.getElementById('ttl').textContent = slides[cur].dataset.title || '';
+  d.getElementById('tgt').textContent = slides[cur].dataset.end ? 'FINISH SLIDE BY ' + slides[cur].dataset.end + ' · HARD STOP 8:00' : '';
+  d.getElementById('notes').textContent = notesOf(cur);
+  d.getElementById('nxt').textContent = cur + 1 < n ? (slides[cur + 1].dataset.title || '') : 'end of deck';
+}
+setInterval(() => {
+  if (!pv || pv.closed || !t0) return;
+  const el = pv.document.getElementById('timer'); if (!el) return;
+  const sec = Math.floor((Date.now() - t0) / 1000);
+  el.textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+  const e = (slides[cur].dataset.end || '').split(':'), end = e.length === 2 ? +e[0] * 60 + +e[1] : Infinity;
+  el.style.color = sec >= 480 ? '#FF6B5B' : sec > end + 5 ? '#F0A22E' : '#fff';
+}, 500);
+
+function handleKey(k){
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) next();
+  else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) prev();
+  else if (k === 'Home') go(0);
+  else if (k === 'End') go(n - 1);
+  else if (k === 'f' || k === 'F') toggleFull();
+  else if (k === 'n' || k === 'N') toggleNotes();
+  else if (k === 'p' || k === 'P') openPresenter();
+  else if (k === '__reset') t0 = Date.now();
+  else return false;
+  return true;
+}
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (handleKey(e.key)) e.preventDefault();
+});
+window.addEventListener('message', e => { if (e.data && e.data.deckKey) handleKey(e.data.deckKey); });
+document.getElementById('bPrev').onclick = prev;
+document.getElementById('bNext').onclick = next;
+document.getElementById('bNotes').onclick = toggleNotes;
+document.getElementById('bPres').onclick = openPresenter;
+document.getElementById('bFull').onclick = toggleFull;
+
+/* touch swipe */
+let tx = null;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive: true});
+document.addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) (dx < 0 ? next : prev)(); tx = null; });
+
+/* hide controls when idle */
+const hud = document.getElementById('hud'), hint = document.getElementById('hint');
+let idleT;
+function wake(){ hud.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => hud.classList.add('idle'), 2500); }
+document.addEventListener('mousemove', wake); wake();
+setTimeout(() => hint.classList.add('gone'), 5000);
+
+window.addEventListener('resize', fit);
+fit();
+const h = parseInt((location.hash || '').slice(1), 10);
+go(Number.isFinite(h) ? h - 1 : 0);
+</script>
+</body>
+</html>
