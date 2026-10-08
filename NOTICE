@@ -1,5 +1,5 @@
 TartanIMU Challenge - Multi-Platform Inertial Odometry (team Hack2Publish)
-Copyright 2026 Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto
+Copyright 2026 Md. Hamid Hosen, Md Esfer Abdus Sami, Md. Foysal Emon Shanto, Kahakashan Ashraf
 
 Third-party components:
 - src/kaggle_metric.py is the organisers' leaderboard scorer, copied unchanged from the

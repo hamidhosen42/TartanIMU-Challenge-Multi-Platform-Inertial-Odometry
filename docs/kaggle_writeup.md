@@ -1,6 +1,6 @@
 # 7th place — One model, four bodies: trajectory context beats per-window regression
 
-**Team Hack2Publish** — Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto
+**Team Hack2Publish** — Md. Hamid Hosen, Md Esfer Abdus Sami, Md. Foysal Emon Shanto, Kahakashan Ashraf
 
 | | |
 |---|---|

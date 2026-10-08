@@ -1,6 +1,6 @@
 # TartanIMU Challenge — Multi-Platform Inertial Odometry (team Hack2Publish)
 
-**Team Hack2Publish** — Md. Hamid Hosen, Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto.
+**Team Hack2Publish** — Md. Hamid Hosen, Md Esfer Abdus Sami, Md. Foysal Emon Shanto, Kahakashan Ashraf.
 
 Predict the mean 3-D **body-frame velocity** of every 1 s window (200 Hz, 6-axis IMU) with **one model** shared
 across car / dog / drone / human. Score = `0.6·AVE/0.7356 + 0.4·ATE20/3.116`, macro-averaged over platforms
@@ -97,7 +97,7 @@ Public-LB noise is ±0.01–0.02 for this family (identical recipes on different
 
 ## Authors
 
-Team **Hack2Publish**: Md. Hamid Hosen (lead, mdhamidhosen4@gmail.com), Esfer Sami, Kahakashan Ashraf, Foysal Emon Shanto.
+Team **Hack2Publish**: Md. Hamid Hosen (lead, mdhamidhosen4@gmail.com), Md Esfer Abdus Sami, Md. Foysal Emon Shanto, Kahakashan Ashraf.
 
 ## License
 
@@ -109,7 +109,7 @@ The competition data is not redistributed here and remains under the challenge's
 ```bibtex
 @misc{hack2publish2026tartanimu,
   title  = {One Model, Four Bodies: Trajectory-Context Inertial Velocity Estimation Across Cars, Quadrupeds, Drones and Handheld Sensors},
-  author = {Hosen, Md. Hamid and Sami, Esfer and Ashraf, Kahakashan and Shanto, Foysal Emon},
+  author = {Hosen, Md. Hamid and Sami, Md Esfer Abdus and Shanto, Md. Foysal Emon and Ashraf, Kahakashan},
   year   = {2026},
   note   = {Team Hack2Publish entry to the TartanIMU Challenge, IROS 2026},
   url    = {https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry}
@@ -122,7 +122,7 @@ Kaggle writeup (7th place, DOI [10.34740/KAGGLE/W/114686](https://doi.org/10.347
 ```bibtex
 @misc{hack2publish2026kagglewriteup,
   title     = {7th Place --- One Model, Four Bodies: Trajectory Context Beats Per-Window Regression},
-  author    = {Hosen, Md. Hamid and Sami, Esfer and Ashraf, Kahakashan and Shanto, Foysal Emon},
+  author    = {Hosen, Md. Hamid and Sami, Md Esfer Abdus and Shanto, Md. Foysal Emon and Ashraf, Kahakashan},
   year      = {2026},
   publisher = {Kaggle},
   note      = {Kaggle competition writeup, TartanIMU Challenge (IROS 2026)},

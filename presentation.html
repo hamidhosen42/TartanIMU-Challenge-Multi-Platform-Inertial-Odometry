@@ -39,7 +39,6 @@ p{margin:0}
   transform:scale(var(--s,.5));background:var(--paper);padding:96px 130px 0;display:flex;flex-direction:column;
   overflow:hidden;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}
 .slide.active{opacity:1;visibility:visible;transition:opacity .3s ease}
-.slide .notes{display:none}
 .slide.dark{background:var(--navy);color:#fff}
 .slide.blue{background:var(--blue);color:#fff}
 
@@ -120,7 +119,7 @@ sub{font-size:.65em;line-height:0}
 /* title + closing */
 .hero{font-family:var(--f-display);font-weight:900;font-stretch:120%;font-size:170px;line-height:.92;letter-spacing:-.03em;margin:40px 0 30px}
 .hero em{font-style:normal;color:var(--amber)}
-.sub{font-family:var(--f-display);font-stretch:104%;font-weight:600;font-size:46px;color:rgba(255,255,255,.85)}
+.subtitle{font-family:var(--f-display);font-stretch:104%;font-weight:600;font-size:46px;color:rgba(255,255,255,.85)}
 .bodies{display:flex;gap:16px;margin-top:56px}
 .team{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:70px;gap:40px}
 .team .who{font-size:30px;line-height:1.5;color:rgba(255,255,255,.75)}
@@ -138,6 +137,78 @@ sub{font-size:.65em;line-height:0}
 .qa .h{font-size:30px}
 .qa .p{font-size:23px}
 
+
+.hours{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.hours span{font-family:var(--f-display);font-weight:700;font-size:26px;color:#fff;border-radius:10px;padding:12px 20px}
+.hours span b{font-family:var(--f-mono);font-weight:500;margin-left:8px}
+.hours .hl{background:none;color:var(--ink);padding-left:0;font-family:var(--f-mono);font-size:22px;font-weight:500}
+.ktab{display:flex;flex-direction:column;gap:6px;font-family:var(--f-mono);font-size:18px}
+.ktab div{display:grid;grid-template-columns:110px repeat(5,1fr);gap:6px;align-items:center}
+.ktab b{font-weight:500;opacity:.85}
+.ktab span{background:rgba(255,255,255,.16);border-radius:6px;text-align:center;padding:4px 0}
+.ktab span.t{background:#FFC46B;color:var(--navy);font-weight:600}
+.fig .fk{font-family:var(--f-mono);font-size:15px;font-weight:600;fill:#FFC46B}
+.fig.cs .fb{font-size:16px}
+.fig.cs .fl{font-size:14px}
+.tleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--f-mono);font-size:16px}
+.tleg span{display:inline-flex;align-items:center;gap:8px}
+.tleg .ln{width:24px;height:3px;background:#FFC46B;display:inline-block}
+.tleg .pl{width:18px;height:18px;border:2px solid #fff;border-radius:50%;display:inline-grid;place-items:center;font-style:normal;font-size:13px;line-height:1}
+.tleg .hd{width:14px;height:9px;background:#fff;border-radius:2px;display:inline-block;box-shadow:inset 0 0 0 3px #0F9D76,0 0 0 2px #fff}
+.dleg{display:flex;flex-wrap:wrap;gap:10px 28px;font-family:var(--f-mono);font-size:19px;color:var(--ink-2);margin-top:6px}
+.dleg span{display:inline-flex;align-items:center;gap:10px}
+/* architecture diagram */
+.stage-box .sub{color:inherit}
+.flow{display:grid;align-items:stretch}
+.flow .arw{display:grid;place-items:center;font-size:34px;font-weight:700;color:var(--ink)}
+.flow .stage-box{min-height:470px}
+.flow .li{font-size:19px;line-height:1.35;padding-left:18px;position:relative}
+.flow .li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:2px;background:currentColor;opacity:.7}
+.loss{font-family:var(--f-mono);font-size:19px;line-height:1.5;background:rgba(255,255,255,.16);border-radius:10px;padding:10px 12px}
+.loss b{font-weight:600}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;color:var(--ink)}
+.opt .h{font-family:var(--f-display);font-weight:800;font-size:26px;white-space:nowrap}
+.opt .chips2{display:flex;flex-wrap:wrap;gap:10px}
+.opt .chips2 span{font-family:var(--f-mono);font-size:20px;background:var(--blue);color:#fff;border-radius:10px;padding:10px 16px}
+.facts{display:flex;flex-wrap:wrap;gap:12px}
+.facts span{font-family:var(--f-mono);font-size:20px;background:var(--soft);color:var(--ink);border-radius:10px;padding:10px 16px}
+.facts span b{font-weight:600}
+
+.fig{display:block;width:100%;height:auto;overflow:visible}
+.fig .fl{font-family:var(--f-mono);font-size:12px;fill:rgba(255,255,255,.8)}
+.fig .fb{font-family:var(--f-mono);font-size:13px;fill:#fff;font-weight:500}
+.fig .fd{font-family:var(--f-display);font-size:15px;font-weight:700;fill:#13233F}
+.fig .fx{font-family:var(--f-display);font-size:30px;font-weight:800;fill:#fff}
+
+.stack3d{position:relative;height:150px;margin:4px 0 2px}
+.stack3d i{position:absolute;top:18px;width:54px;height:112px;border-radius:4px;background:#9DBBFF;border:2px solid #E6EEFF;transform:skewY(-22deg);box-shadow:6px 0 0 #3E6FE8}
+
+.arch{display:flex;flex-direction:column;gap:22px}
+.arch-row{display:grid;grid-template-columns:400px 40px 1fr 40px 300px 40px 270px;align-items:stretch}
+.arch .arw{display:grid;place-items:center;font-size:34px;font-weight:700;color:var(--ink)}
+.stage-box{border-radius:18px;padding:22px 20px 18px;color:#fff;display:flex;flex-direction:column;gap:12px;min-height:440px}
+.stage-box .h{font-family:var(--f-display);font-weight:800;font-stretch:106%;font-size:30px;line-height:1.1}
+.stage-box .d{font-size:20px;line-height:1.35;opacity:.9}
+.stage-box .out{margin-top:auto;font-family:var(--f-mono);font-size:20px;font-weight:500;background:rgba(0,0,0,.22);border-radius:8px;padding:8px 12px;text-align:center}
+.sub{background:rgba(255,255,255,.16);border-radius:10px;padding:10px 12px;font-family:var(--f-mono);font-size:18px;line-height:1.35}
+.sub b{font-family:var(--f-display);font-size:20px;font-weight:700;display:block}
+.sig{width:100%;height:150px;display:block;background:rgba(255,255,255,.06);border-radius:10px}
+.tcn{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.tcn div{background:rgba(255,255,255,.18);border-radius:10px;padding:14px 0 10px;text-align:center;font-family:var(--f-mono);font-size:17px;line-height:1.5}
+.tcn div b{display:block;font-family:var(--f-display);font-size:26px;font-weight:800}
+.tlayers{display:flex;flex-direction:column;gap:10px}
+.tlayers div{background:rgba(255,255,255,.18);border-radius:10px;padding:14px 14px;font-family:var(--f-display);font-weight:700;font-size:22px}
+.tlayers div span{font-family:var(--f-mono);font-weight:400;font-size:17px;opacity:.85;margin-left:8px}
+.arch-under{display:grid;grid-template-columns:400px 40px 1fr 40px 300px 40px 270px}
+.phys{grid-column:1 / span 3;max-width:820px;background:var(--amber);color:var(--navy);border-radius:16px;padding:16px 20px;display:flex;flex-direction:column;gap:6px}
+.phys .h,.plat .h{font-family:var(--f-display);font-weight:800;font-size:24px}
+.phys .d,.plat .d{font-size:19px;line-height:1.35}
+.phys .up{font-family:var(--f-mono);font-size:17px;font-weight:500}
+.plat{grid-column:5 / span 1;border:3px dashed var(--muted);color:var(--ink-2);border-radius:16px;padding:14px 18px;display:flex;flex-direction:column;gap:6px}
+.plat .h{color:var(--ink)}
+.shapes{display:flex;justify-content:space-between;align-items:center;background:var(--soft);border-radius:12px;padding:12px 24px;font-family:var(--f-mono);font-size:21px;color:var(--ink-2)}
+.shapes b{color:var(--ink);font-weight:500}
+
 /* ---------- controls (outside the slide canvas) ---------- */
 .hud{position:fixed;right:18px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;align-items:center;
   background:rgba(11,18,34,.9);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px;
@@ -147,9 +218,6 @@ sub{font-size:.65em;line-height:0}
 .hud button:hover{background:rgba(255,255,255,.1);color:#fff}
 .hud button:focus-visible{outline:2px solid #9ec5f4;outline-offset:1px}
 .hud .count{padding:0 8px;font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
-.notes-panel{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom,0px));width:min(900px,calc(100% - 32px));max-height:38vh;overflow:auto;
-  background:rgba(11,18,34,.95);color:#E6EAF0;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px 24px;font-size:17px;line-height:1.55;z-index:9}
-.notes-panel .label{font-family:var(--f-mono);color:#9ec5f4;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
 .hint{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(11,18,34,.92);color:#E6EAF0;
   font-family:var(--f-mono);font-size:13px;padding:10px 16px;border-radius:10px;transition:opacity .6s ease;z-index:10;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}
 .hint.gone{opacity:0;pointer-events:none}
@@ -163,7 +231,7 @@ sub{font-size:.65em;line-height:0}
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .stage{position:static}
   .slide{position:relative;left:auto;top:auto;margin:0;transform:none!important;opacity:1;visibility:visible;break-after:page;page-break-after:always}
-  .hud,.notes-panel,.hint{display:none!important}
+  .hud,.hint{display:none!important}
 }
 </style>
 </head>
@@ -171,10 +239,10 @@ sub{font-size:.65em;line-height:0}
 <main class="stage" id="stage">
 
 <!-- 1 · Title -->
-<section class="slide dark" data-title="Title" data-end="0:40">
-  <div class="kicker">TartanIMU Challenge · IROS 2026 · Beyond Exteroception</div>
+<section class="slide dark" data-title="Title">
+  <div class="kicker">TartanIMU Challenge · IROS 2026</div>
   <h1 class="hero">One model,<br><em>four bodies.</em></h1>
-  <p class="sub">Trajectory context beats per-window regression</p>
+  <p class="subtitle">Trajectory context beats per-window regression</p>
   <div class="bodies">
     <span class="chip" style="background:var(--p-car)">Car</span>
     <span class="chip" style="background:var(--p-dog);color:var(--navy)">Quadruped</span>
@@ -182,14 +250,13 @@ sub{font-size:.65em;line-height:0}
     <span class="chip" style="background:var(--p-drone)">Drone</span>
   </div>
   <div class="team">
-    <div class="who"><b>Md Esfer Abdus Sami</b> · Team Hack2Publish<br>with Md. Hamid Hosen, Kahakashan Ashraf, Foysal Emon Shanto</div>
-    <div class="pill">Challenge award · 7th of 132</div>
+    <div class="who"><b>Md Esfer Abdus Sami</b> · Team Hack2Publish<br>with Md. Hamid Hosen, Md. Foysal Emon Shanto, Kahakashan Ashraf</div>
+    <div class="pill">7th of 132 · final leaderboard</div>
   </div>
-  <aside class="notes">Hello everyone, I'm Md Esfer Abdus Sami from team Hack2Publish, with Md. Hamid Hosen, Kahakashan Ashraf and Foysal Emon Shanto. First, thank you to the committee for the award and for inviting us. Our entry is one network, with one set of weights, for all four bodies: a car, a quadruped, a handheld device and a drone. The one idea behind it: read the whole trajectory, not one second at a time.</aside>
 </section>
 
 <!-- 2 · Result -->
-<section class="slide" data-title="Result" data-end="1:15">
+<section class="slide" data-title="Result">
   <div class="kicker">Result</div>
   <h2 class="title">59 % below the organisers' baseline, with one small network</h2>
   <div class="body">
@@ -202,32 +269,38 @@ sub{font-size:.65em;line-height:0}
     <p class="say">No ensembling, no test-time augmentation, no platform label, no external data.</p>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">The result first. On the official scoring service, across all 89 test sequences, we score 0.219 against the baseline's 0.538, which is 59 percent lower. We finished seventh of 132 on the final private leaderboard, up from tenth on the public board. The model has 3.9 million parameters, gets no platform label, and runs the full test set in 26 seconds on a single T4.</aside>
 </section>
 
 <!-- 3 · Task -->
-<section class="slide" data-title="The task" data-end="1:50">
+<section class="slide" data-title="The task">
   <div class="kicker">The task</div>
   <h2 class="title">Raw IMU in, body-frame velocity out, for four very different bodies</h2>
   <div class="body">
     <div class="pipe">
-      <div class="st" style="background:var(--navy)"><div class="h">IMU · 200 Hz</div><div class="p">accelerometer + gyroscope, 6 channels</div></div>
+      <div class="st" style="background:var(--navy)"><div class="h">IMU · 200 Hz · 6 channels</div><div class="p">3 accelerometer: a<sub>x</sub>, a<sub>y</sub>, a<sub>z</sub><br>3 gyroscope: ω<sub>x</sub>, ω<sub>y</sub>, ω<sub>z</sub></div></div>
       <div class="ar">→</div>
       <div class="st" style="background:var(--blue)"><div class="h">One model</div><div class="p">no platform label at test time</div></div>
       <div class="ar">→</div>
       <div class="st" style="background:var(--teal)"><div class="h">Velocity</div><div class="p">mean v<sub>x</sub>, v<sub>y</sub>, v<sub>z</sub> for every 1 s window</div></div>
     </div>
-    <div class="row r2">
+    <div class="hours">
+      <span class="hl">Train data · 22.7 h</span>
+      <span style="background:var(--p-car)">Car <b>6.5 h</b></span>
+      <span style="background:var(--p-dog);color:var(--navy)">Dog <b>4.1 h</b></span>
+      <span style="background:var(--p-human)">Human <b>8.1 h</b></span>
+      <span style="background:var(--p-drone)">Drone <b>4.0 h</b></span>
+      <span class="hl" style="margin-left:24px">+ Val · 6.6 h</span>
+      <span class="hl" style="margin-left:24px">Test · 8.5 h</span>
+    </div>
+    <div class="row" style="grid-template-columns:max-content">
       <div class="blk s"><div class="tag">Score</div><div class="h mono" style="font-size:32px;font-weight:500">0.6 · AVE + 0.4 · ATE<sub>20</sub></div><div class="p">each normalised; averaged per trajectory, then equally over the four platforms</div></div>
-      <div class="blk s"><div class="tag">Why it's hard</div><div class="p">Gravity, bias and mounting hide inside the same six numbers. Speeds and vibration differ ten-fold between bodies.</div></div>
     </div>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">The task: from raw 200 hertz accelerometer and gyroscope, predict the mean body-frame velocity of every one-second window. One model handles all four bodies, and at test time it isn't told which one it is looking at. The score mixes velocity error and a trajectory error over 20-metre segments, averaged per trajectory and then equally over platforms. Remember that averaging, because we shaped training around it.</aside>
 </section>
 
 <!-- 4 · Key idea -->
-<section class="slide" data-title="Key idea" data-end="2:30">
+<section class="slide" data-title="Key idea">
   <div class="kicker">Key idea</div>
   <h2 class="title">A window's neighbours already know most of its answer</h2>
   <div class="body">
@@ -247,11 +320,10 @@ sub{font-size:.65em;line-height:0}
     </div>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">Before training anything, we checked how much a window's neighbours know about it. Just averaging the true velocity of the two neighbouring windows cuts the error of predicting zero by about two thirds on car and dog. So the answer is mostly in the neighbourhood, and a per-window model throws it away. The test trajectories are given whole, so using that context is allowed. That decided the design.</aside>
 </section>
 
 <!-- 5 · Model -->
-<section class="slide" data-title="Model" data-end="3:05">
+<section class="slide" data-title="Model">
   <div class="kicker">Model</div>
   <h2 class="title">Read 16 seconds at once, predict a velocity every 50 ms</h2>
   <div class="body">
@@ -273,32 +345,194 @@ sub{font-size:.65em;line-height:0}
     </div>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">The model reads a 16-second chunk of raw IMU. A convolution stem brings it down to 20 hertz tokens, eight dilated convolution blocks give about 13 seconds of receptive field, and a small three-layer transformer mixes the whole chunk. It outputs a velocity every 50 milliseconds, and we average those within each window. We also add a few strap-down physics features, like the integrated gyro orientation. One weight set, no platform input.</aside>
 </section>
 
-<!-- 6 · Training + inference -->
-<section class="slide" data-title="Training and inference" data-end="3:50">
-  <div class="kicker">Training & inference</div>
-  <h2 class="title">Train the way the metric scores</h2>
-  <div class="body">
-    <div class="row r2">
-      <div class="blk b"><div class="tag">Loss</div><div class="h">Window error + drift error</div><div class="p">A Huber loss for velocity (AVE) plus a loss on the accumulated drift that ATE<sub>20</sub> sees.</div></div>
-      <div class="blk t"><div class="tag">Sampling</div><div class="h">Platform → trajectory → chunk</div><div class="p">Uniform at each step, like the metric. A short drone clip counts as much as a long drive.</div></div>
-      <div class="blk a"><div class="tag">Augmentation</div><div class="h">Respects the physics</div><div class="p">Random re-mounting, time dilation and sensor bias, applied to the label too.</div></div>
-      <div class="blk n"><div class="tag">Inference</div><div class="h">8 overlapping chunks per window</div><div class="p">Stride 2, centre-weighted average. Nothing else: no TTA, no smoothing.</div></div>
+<!-- 5b · Architecture diagram -->
+<section class="slide" data-title="Model architecture" style="padding-top:70px">
+  <div class="kicker">Model architecture</div>
+  <h2 class="title" style="font-size:60px;margin-bottom:34px">One network, four stages, 3.9 M parameters</h2>
+  <div class="body" style="justify-content:center;gap:24px;padding-bottom:30px">
+    <div class="arch">
+      <div class="arch-row">
+        <div class="stage-box" style="background:var(--blue)">
+          <div class="h">Conv stem</div>
+          <div class="d">2 strided 1-D convs: 200 Hz → 20 Hz tokens</div>
+          <svg class="fig cs" viewBox="0 0 380 284" aria-hidden="true"><polygon points="22,28 36,18 44,18 30,28" fill="#fff" fill-opacity=".55" stroke="#fff" stroke-width="1.2"/><polygon points="30,28 44,18 44,208 30,218" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.2"/><rect x="22" y="28" width="8" height="190" fill="#fff" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/><polygon points="140,62 154,52 190,52 176,62" fill="#fff" fill-opacity=".55" stroke="#fff" stroke-width="1.2"/><polygon points="176,62 190,52 190,174 176,184" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.2"/><rect x="140" y="62" width="36" height="122" fill="#fff" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/><polygon points="282,98 296,88 356,88 342,98" fill="#fff" fill-opacity=".55" stroke="#fff" stroke-width="1.2"/><polygon points="342,98 356,88 356,138 342,148" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.2"/><rect x="282" y="98" width="60" height="50" fill="#fff" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/><rect x="22" y="70" width="8" height="28" fill="#FFC46B" stroke="#FFC46B"/><line x1="30" y1="70" x2="158" y2="80" stroke="#FFC46B" stroke-width="1.4" stroke-dasharray="4 3"/><line x1="30" y1="98" x2="158" y2="80" stroke="#FFC46B" stroke-width="1.4" stroke-dasharray="4 3"/><circle cx="158" cy="80" r="3.5" fill="#FFC46B"/><rect x="140" y="104" width="36" height="30" fill="#FFC46B" stroke="#FFC46B"/><line x1="176" y1="104" x2="312" y2="124" stroke="#FFC46B" stroke-width="1.4" stroke-dasharray="4 3"/><line x1="176" y1="134" x2="312" y2="124" stroke="#FFC46B" stroke-width="1.4" stroke-dasharray="4 3"/><circle cx="312" cy="124" r="3.5" fill="#FFC46B"/><text x="88" y="54" class="fk" text-anchor="middle">k9 · s2</text><text x="244" y="164" class="fk" text-anchor="middle">k11 · s5</text><text x="2" y="258" class="fb" text-anchor="start">3200 × 6</text><text x="2" y="278" class="fl" text-anchor="start">200 Hz</text><text x="165.0" y="258" class="fb" text-anchor="middle">1600 × 96</text><text x="165.0" y="278" class="fl" text-anchor="middle">100 Hz</text><text x="319.0" y="258" class="fb" text-anchor="middle">320 × 192</text><text x="319.0" y="278" class="fl" text-anchor="middle">20 Hz</text></svg>
+          <div class="d" style="font-family:var(--f-mono);font-size:17px">each conv → GroupNorm · GELU</div>
+          <div class="sub" style="background:var(--amber);color:var(--navy)"><b>+ Physics features</b>gyro orientation, gravity · no learned weights</div>
+          <div class="out">320 × 192</div>
+        </div>
+        <div class="arw">→</div>
+        <div class="stage-box" style="background:var(--violet)">
+          <div class="h">Dilated TCN · 8 blocks</div>
+          <div class="d">depthwise conv k5 → 1×1 ×3 · GELU → 1×1, + residual</div>
+          <div class="tcn">
+            <div><b>1</b>d=1</div><div><b>2</b>d=2</div><div><b>3</b>d=4</div><div><b>4</b>d=8</div>
+            <div><b>5</b>d=16</div><div><b>6</b>d=32</div><div><b>7</b>d=1</div><div><b>8</b>d=2</div>
+          </div>
+          <svg class="fig" viewBox="0 0 350 160" aria-hidden="true"><text x="0" y="145" class="fl">input</text><text x="0" y="101" class="fl">d=1</text><text x="0" y="57" class="fl">d=2</text><text x="0" y="17" class="fl">d=4</text><line x1="193.0" y1="12" x2="119.5" y2="52" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="12" x2="156.2" y2="52" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="12" x2="193.0" y2="52" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="12" x2="229.8" y2="52" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="12" x2="266.5" y2="52" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="52" x2="82.8" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="52" x2="101.1" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="52" x2="119.5" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="52" x2="137.9" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="52" x2="156.2" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="52" x2="119.5" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="52" x2="137.9" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="52" x2="156.2" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="52" x2="174.6" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="52" x2="193.0" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="52" x2="156.2" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="52" x2="174.6" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="52" x2="193.0" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="52" x2="211.4" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="52" x2="229.8" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="52" x2="193.0" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="52" x2="211.4" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="52" x2="229.8" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="52" x2="248.1" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="52" x2="266.5" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="52" x2="229.8" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="52" x2="248.1" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="52" x2="266.5" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="52" x2="284.9" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="52" x2="303.2" y2="96" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="82.8" y1="96" x2="64.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="82.8" y1="96" x2="73.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="82.8" y1="96" x2="82.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="82.8" y1="96" x2="91.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="82.8" y1="96" x2="101.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="101.1" y1="96" x2="82.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="101.1" y1="96" x2="91.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="101.1" y1="96" x2="101.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="101.1" y1="96" x2="110.3" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="101.1" y1="96" x2="119.5" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="96" x2="101.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="96" x2="110.3" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="96" x2="119.5" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="96" x2="128.7" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="119.5" y1="96" x2="137.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="137.9" y1="96" x2="119.5" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="137.9" y1="96" x2="128.7" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="137.9" y1="96" x2="137.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="137.9" y1="96" x2="147.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="137.9" y1="96" x2="156.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="96" x2="137.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="96" x2="147.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="96" x2="156.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="96" x2="165.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="156.2" y1="96" x2="174.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="174.6" y1="96" x2="156.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="174.6" y1="96" x2="165.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="174.6" y1="96" x2="174.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="174.6" y1="96" x2="183.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="174.6" y1="96" x2="193.0" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="96" x2="174.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="96" x2="183.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="96" x2="193.0" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="96" x2="202.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="193.0" y1="96" x2="211.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="211.4" y1="96" x2="193.0" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="211.4" y1="96" x2="202.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="211.4" y1="96" x2="211.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="211.4" y1="96" x2="220.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="211.4" y1="96" x2="229.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="96" x2="211.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="96" x2="220.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="96" x2="229.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="96" x2="238.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="229.8" y1="96" x2="248.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="248.1" y1="96" x2="229.8" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="248.1" y1="96" x2="238.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="248.1" y1="96" x2="248.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="248.1" y1="96" x2="257.3" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="248.1" y1="96" x2="266.5" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="96" x2="248.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="96" x2="257.3" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="96" x2="266.5" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="96" x2="275.7" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="266.5" y1="96" x2="284.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="284.9" y1="96" x2="266.5" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="284.9" y1="96" x2="275.7" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="284.9" y1="96" x2="284.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="284.9" y1="96" x2="294.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="284.9" y1="96" x2="303.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="303.2" y1="96" x2="284.9" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="303.2" y1="96" x2="294.1" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="303.2" y1="96" x2="303.2" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="303.2" y1="96" x2="312.4" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><line x1="303.2" y1="96" x2="321.6" y2="140" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><circle cx="46.0" cy="140" r="3" fill="rgba(255,255,255,.28)"/><circle cx="55.2" cy="140" r="3" fill="rgba(255,255,255,.28)"/><circle cx="64.4" cy="140" r="4.6" fill="#fff"/><circle cx="73.6" cy="140" r="4.6" fill="#fff"/><circle cx="82.8" cy="140" r="4.6" fill="#fff"/><circle cx="91.9" cy="140" r="4.6" fill="#fff"/><circle cx="101.1" cy="140" r="4.6" fill="#fff"/><circle cx="110.3" cy="140" r="4.6" fill="#fff"/><circle cx="119.5" cy="140" r="4.6" fill="#fff"/><circle cx="128.7" cy="140" r="4.6" fill="#fff"/><circle cx="137.9" cy="140" r="4.6" fill="#fff"/><circle cx="147.1" cy="140" r="4.6" fill="#fff"/><circle cx="156.2" cy="140" r="4.6" fill="#fff"/><circle cx="165.4" cy="140" r="4.6" fill="#fff"/><circle cx="174.6" cy="140" r="4.6" fill="#fff"/><circle cx="183.8" cy="140" r="4.6" fill="#fff"/><circle cx="193.0" cy="140" r="4.6" fill="#fff"/><circle cx="202.2" cy="140" r="4.6" fill="#fff"/><circle cx="211.4" cy="140" r="4.6" fill="#fff"/><circle cx="220.6" cy="140" r="4.6" fill="#fff"/><circle cx="229.8" cy="140" r="4.6" fill="#fff"/><circle cx="238.9" cy="140" r="4.6" fill="#fff"/><circle cx="248.1" cy="140" r="4.6" fill="#fff"/><circle cx="257.3" cy="140" r="4.6" fill="#fff"/><circle cx="266.5" cy="140" r="4.6" fill="#fff"/><circle cx="275.7" cy="140" r="4.6" fill="#fff"/><circle cx="284.9" cy="140" r="4.6" fill="#fff"/><circle cx="294.1" cy="140" r="4.6" fill="#fff"/><circle cx="303.2" cy="140" r="4.6" fill="#fff"/><circle cx="312.4" cy="140" r="4.6" fill="#fff"/><circle cx="321.6" cy="140" r="4.6" fill="#fff"/><circle cx="330.8" cy="140" r="3" fill="rgba(255,255,255,.28)"/><circle cx="340.0" cy="140" r="3" fill="rgba(255,255,255,.28)"/><circle cx="46.0" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="55.2" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="64.4" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="73.6" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="82.8" cy="96" r="4.6" fill="#fff"/><circle cx="91.9" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="101.1" cy="96" r="4.6" fill="#fff"/><circle cx="110.3" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="119.5" cy="96" r="4.6" fill="#fff"/><circle cx="128.7" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="137.9" cy="96" r="4.6" fill="#fff"/><circle cx="147.1" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="156.2" cy="96" r="4.6" fill="#fff"/><circle cx="165.4" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="174.6" cy="96" r="4.6" fill="#fff"/><circle cx="183.8" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="193.0" cy="96" r="4.6" fill="#fff"/><circle cx="202.2" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="211.4" cy="96" r="4.6" fill="#fff"/><circle cx="220.6" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="229.8" cy="96" r="4.6" fill="#fff"/><circle cx="238.9" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="248.1" cy="96" r="4.6" fill="#fff"/><circle cx="257.3" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="266.5" cy="96" r="4.6" fill="#fff"/><circle cx="275.7" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="284.9" cy="96" r="4.6" fill="#fff"/><circle cx="294.1" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="303.2" cy="96" r="4.6" fill="#fff"/><circle cx="312.4" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="321.6" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="330.8" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="340.0" cy="96" r="3" fill="rgba(255,255,255,.28)"/><circle cx="46.0" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="55.2" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="64.4" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="73.6" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="82.8" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="91.9" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="101.1" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="110.3" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="119.5" cy="52" r="4.6" fill="#fff"/><circle cx="128.7" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="137.9" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="147.1" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="156.2" cy="52" r="4.6" fill="#fff"/><circle cx="165.4" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="174.6" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="183.8" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="193.0" cy="52" r="4.6" fill="#fff"/><circle cx="202.2" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="211.4" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="220.6" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="229.8" cy="52" r="4.6" fill="#fff"/><circle cx="238.9" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="248.1" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="257.3" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="266.5" cy="52" r="4.6" fill="#fff"/><circle cx="275.7" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="284.9" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="294.1" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="303.2" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="312.4" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="321.6" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="330.8" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="340.0" cy="52" r="3" fill="rgba(255,255,255,.28)"/><circle cx="46.0" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="55.2" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="64.4" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="73.6" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="82.8" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="91.9" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="101.1" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="110.3" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="119.5" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="128.7" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="137.9" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="147.1" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="156.2" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="165.4" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="174.6" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="183.8" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="193.0" cy="12" r="4.6" fill="#FFC46B"/><circle cx="202.2" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="211.4" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="220.6" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="229.8" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="238.9" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="248.1" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="257.3" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="266.5" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="275.7" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="284.9" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="294.1" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="303.2" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="312.4" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="321.6" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="330.8" cy="12" r="3" fill="rgba(255,255,255,.28)"/><circle cx="340.0" cy="12" r="3" fill="rgba(255,255,255,.28)"/></svg>
+          <div class="ktab">
+            <div><b>k5, d=1</b><span>t−2</span><span>t−1</span><span class="t">t</span><span>t+1</span><span>t+2</span></div>
+            <div><b>k5, d=2</b><span>t−4</span><span>t−2</span><span class="t">t</span><span>t+2</span><span>t+4</span></div>
+            <div><b>k5, d=32</b><span>t−64</span><span>t−32</span><span class="t">t</span><span>t+32</span><span>t+64</span></div>
+          </div>
+          <div class="d" style="font-family:var(--f-mono);font-size:18px">gaps double each block → receptive field ≈ 13 s</div>
+          <div class="out">320 × 192</div>
+        </div>
+        <div class="arw">→</div>
+        <div class="stage-box" style="background:var(--teal);align-self:center;min-height:0">
+          <div class="h">Transformer</div>
+          <div class="d">every token attends to all 320</div>
+          <svg class="fig" viewBox="0 0 260 250" aria-hidden="true">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#fff"/></marker></defs>
+<rect x="6" y="14" width="206" height="222" rx="14" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="250" y="132" class="fx" text-anchor="end">×3</text>
+<line x1="120" y1="248" x2="120" y2="222" stroke="#fff" stroke-width="2" marker-end="url(#ah)"/>
+<rect x="52" y="196" width="136" height="24" rx="6" fill="rgba(255,255,255,.22)"/><text x="120" y="208" class="fb" text-anchor="middle" dominant-baseline="central">LayerNorm</text>
+<line x1="120" y1="196" x2="120" y2="184" stroke="#fff" stroke-width="2"/>
+<rect x="44" y="138" width="152" height="46" rx="8" fill="#fff"/>
+<text x="120" y="152" class="fd" text-anchor="middle" dominant-baseline="central">Self-attention</text>
+<g fill="#0F9D76"><rect x="80" y="166" width="16" height="9" rx="2"/><rect x="102" y="166" width="16" height="9" rx="2"/><rect x="124" y="166" width="16" height="9" rx="2"/><rect x="146" y="166" width="16" height="9" rx="2"/></g>
+<line x1="120" y1="138" x2="120" y2="130" stroke="#fff" stroke-width="2"/>
+<circle cx="120" cy="121" r="9" fill="none" stroke="#fff" stroke-width="2"/><text x="120" y="121" class="fb" text-anchor="middle" dominant-baseline="central">+</text>
+<line x1="120" y1="112" x2="120" y2="104" stroke="#fff" stroke-width="2"/>
+<rect x="52" y="80" width="136" height="24" rx="6" fill="rgba(255,255,255,.22)"/><text x="120" y="92" class="fb" text-anchor="middle" dominant-baseline="central">LayerNorm</text>
+<line x1="120" y1="80" x2="120" y2="72" stroke="#fff" stroke-width="2"/>
+<rect x="44" y="40" width="152" height="32" rx="8" fill="#fff"/><text x="120" y="56" class="fd" text-anchor="middle" dominant-baseline="central">FFN 192→576→192</text>
+<line x1="120" y1="40" x2="120" y2="35" stroke="#fff" stroke-width="2"/>
+<circle cx="120" cy="26" r="9" fill="none" stroke="#fff" stroke-width="2"/><text x="120" y="26" class="fb" text-anchor="middle" dominant-baseline="central">+</text>
+<line x1="120" y1="17" x2="120" y2="2" stroke="#fff" stroke-width="2" marker-end="url(#ah)"/>
+<path d="M120,230 H24 V121 H111" fill="none" stroke="#FFC46B" stroke-width="2"/>
+<path d="M120,114 H32 V26 H111" fill="none" stroke="#FFC46B" stroke-width="2"/>
+</svg>
+          <div class="out">320 × 192</div>
+        </div>
+        <div class="arw">→</div>
+        <div class="stage-box" style="background:var(--coral);align-self:center;min-height:0">
+          <div class="h">Velocity head</div>
+          <div class="sub"><b>MLP per token</b>LayerNorm → 128 → GELU → 3</div>
+          <div class="d">one (v<sub>x</sub>, v<sub>y</sub>, v<sub>z</sub>) every 50 ms</div>
+          <div class="sub"><b>Window mean</b>20 tokens → 1 s window</div>
+          <div class="out">320 × 3 → 16 × 3</div>
+        </div>
+      </div>
+      
+      <div class="dleg"><span><svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><line x1="2" y1="11" x2="26" y2="11" stroke="#13233F" stroke-width="2.5"/><path d="M24,6 L32,11 L24,16Z" fill="#13233F"/></svg>data flow between stages</span><span><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><rect x="4" y="2" width="12" height="18" fill="#2456D6"/><rect x="4" y="7" width="12" height="7" fill="#FFC46B"/></svg>conv kernel window</span><span><svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><line x1="2" y1="11" x2="26" y2="11" stroke="#E0A030" stroke-width="2" stroke-dasharray="4 3"/><circle cx="29" cy="11" r="3.5" fill="#E0A030"/></svg>kernel → its output position</span><span><svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><circle cx="17" cy="5" r="4.5" fill="#E0A030"/><line x1="17" y1="5" x2="5" y2="19" stroke="#6A4BC4" stroke-width="1.5"/><line x1="17" y1="5" x2="17" y2="19" stroke="#6A4BC4" stroke-width="1.5"/><line x1="17" y1="5" x2="29" y2="19" stroke="#6A4BC4" stroke-width="1.5"/></svg>one output token and the tokens it reads</span><span><svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><path d="M2,18 H20 V5 H32" fill="none" stroke="#E0A030" stroke-width="2.5"/></svg>residual (skip) connection</span><span><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="#13233F" stroke-width="2"/><path d="M11,6 V16 M6,11 H16" stroke="#13233F" stroke-width="2"/></svg>add</span><span><svg width="36" height="22" viewBox="0 0 36 22" aria-hidden="true"><rect x="1" y="7" width="7" height="8" rx="1.5" fill="#0F9D76"/><rect x="10" y="7" width="7" height="8" rx="1.5" fill="#0F9D76"/><rect x="19" y="7" width="7" height="8" rx="1.5" fill="#0F9D76"/><rect x="28" y="7" width="7" height="8" rx="1.5" fill="#0F9D76"/></svg>4 attention heads</span></div>
     </div>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">Training follows the metric. The loss has a window velocity term and a drift term on the integrated error, which is what the trajectory metric measures. We sample a platform uniformly, then a trajectory uniformly, then a chunk, exactly how the metric averages. Augmentation is physical: random re-mounting rotations, time dilation and sensor bias, applied to the label too. At test time each window is covered by eight overlapping chunks, and we trust the chunk where it sits near the centre most.</aside>
+</section>
+
+<!-- 7 · Training pipeline -->
+<section class="slide" data-title="Training pipeline" style="padding-top:70px">
+  <div class="kicker">Training pipeline</div>
+  <h2 class="title" style="font-size:60px;margin-bottom:34px">Sample, augment and score the way the metric does</h2>
+  <div class="body" style="justify-content:center;gap:24px;padding-bottom:30px">
+    <div class="flow" style="grid-template-columns:1fr 40px 1.15fr 40px 1.3fr 40px 1fr 40px 1.35fr">
+      <div class="stage-box" style="background:var(--navy)">
+        <div class="h">Data</div>
+        <div class="d">released train + val trajectories</div>
+        <svg class="sig" style="height:120px" viewBox="0 0 240 134" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,12.0 4,16.6 8,15.4 12,16.5 16,15.3 20,12.0 24,15.0 28,16.4 32,14.8 36,15.6 40,11.3 44,6.5 48,8.0 52,7.6 56,8.6 60,12.1 64,9.4 68,7.8 72,9.9 76,9.5 80,13.4 84,18.3 88,16.5 92,16.2 96,15.4 100,11.7 104,14.0 108,15.9 112,13.4 116,13.4 120,9.9 124,5.1 128,7.1 132,8.1 136,8.8 140,12.6 144,10.6 148,8.5 152,11.3 156,11.7 160,14.6 164,19.4 168,17.1 172,15.4 176,14.9 180,11.1 184,12.6 188,15.0 192,12.0 196,11.3 200,8.9 204,4.3 208,6.7 212,9.3 216,9.7 220,13.3 224,12.2 228,9.5 232,12.6 236,13.7 240,15.5" fill="none" stroke="#FF8A7A" stroke-width="2" stroke-linejoin="round"/><polyline points="0,39.9 4,37.0 8,37.6 12,35.0 16,34.6 20,38.4 24,36.5 28,34.2 32,33.1 36,27.8 40,27.7 44,31.1 48,30.8 52,33.1 56,33.9 60,30.2 64,32.1 68,34.9 72,35.8 76,40.5 80,40.7 84,36.6 88,36.6 92,34.6 96,33.5 100,37.1 104,35.4 108,32.1 112,31.5 116,27.3 120,27.2 124,31.8 128,32.1 132,33.7 136,35.2 140,31.7 144,33.1 148,36.8 152,37.2 156,40.7 160,40.8 164,35.7 168,35.1 172,33.9 176,32.2 180,35.6 184,34.5 188,30.5 192,30.3 196,27.5 200,27.4 204,32.9 208,33.9 212,34.5 216,36.4 220,33.2 224,33.9 228,38.1 232,38.2 236,40.2 240,40.3" fill="none" stroke="#FFC46B" stroke-width="2" stroke-linejoin="round"/><polyline points="0,57.3 4,57.9 8,55.7 12,57.9 16,59.0 20,54.2 24,52.7 28,50.9 32,48.5 36,52.9 40,55.4 44,54.6 48,56.7 52,55.0 56,53.6 60,58.5 64,60.2 68,61.2 72,63.4 76,58.9 80,55.8 84,56.8 88,54.9 92,56.2 96,57.8 100,52.9 104,51.1 108,50.8 112,49.0 116,53.5 120,57.1 124,55.8 128,57.5 132,56.6 136,54.8 140,59.5 144,61.5 148,61.0 152,62.4 156,58.0 160,54.0 164,55.5 168,54.2 172,54.7 176,56.6 180,52.2 184,50.1 188,51.3 192,50.3 196,54.6 200,58.9 204,57.3 208,58.1 212,58.0 216,55.8 220,59.9 224,62.2 228,60.3 232,60.8 236,56.8 240,52.1" fill="none" stroke="#7FE0B8" stroke-width="2" stroke-linejoin="round"/><polyline points="0,78.5 4,77.3 8,79.6 12,76.6 16,72.0 20,72.9 24,72.1 28,73.8 32,79.3 36,78.6 40,77.9 44,79.3 48,77.2 52,79.8 56,84.5 60,83.2 64,83.3 68,81.6 72,76.0 76,76.5 80,77.7 84,76.2 88,78.0 92,75.9 96,71.3 100,72.8 104,73.5 108,75.1 112,80.7 116,80.4 120,78.7 124,80.3 128,78.7 132,80.2 136,84.8 140,83.1 144,81.6 148,80.2 152,74.6 156,74.7 160,77.0 164,75.4 168,76.8 172,75.7 176,71.3 180,73.1 184,75.4 188,76.7 192,82.0 196,82.1 200,79.3 204,80.7 208,79.7 212,80.2 216,84.5 220,82.5 224,79.5 228,78.4 232,73.4 236,73.1 240,76.5" fill="none" stroke="#8FB4FF" stroke-width="2" stroke-linejoin="round"/><polyline points="0,98.6 4,98.9 8,93.9 12,93.2 16,96.4 20,96.9 24,101.1 28,103.6 32,100.4 36,101.1 40,102.0 44,101.5 48,106.0 52,106.7 56,102.9 60,102.1 64,98.3 68,95.6 72,99.0 76,98.7 80,97.4 84,98.2 88,94.3 92,93.5 96,97.9 100,99.0 104,102.3 108,105.1 112,101.5 116,101.3 120,102.9 124,101.9 128,105.3 132,106.1 136,101.3 140,99.8 144,97.1 148,94.3 152,98.0 156,98.7 160,96.9 164,98.0 168,95.2 172,94.4 176,99.6 180,101.3 184,103.4 188,106.1 192,102.4 196,101.1 200,103.2 204,102.0 208,104.1 212,105.0 216,99.6 220,97.5 224,96.1 228,93.6 232,97.4 236,99.2 240,96.9" fill="none" stroke="#C9B6FF" stroke-width="2" stroke-linejoin="round"/><polyline points="0,117.8 4,114.8 8,118.9 12,122.2 16,123.1 20,126.6 24,124.9 28,122.1 32,124.9 36,125.1 40,125.9 44,128.7 48,124.5 52,120.6 56,120.1 60,117.0 64,118.5 68,121.8 72,119.1 76,118.7 80,118.5 84,116.0 88,120.1 92,124.5 96,124.7 100,127.3 104,125.9 108,122.3 112,124.7 116,125.4 120,125.0 124,127.2 128,123.2 132,118.4 136,118.6 140,116.6 144,117.8 148,121.8 152,119.6 156,118.6 160,119.6 164,117.7 168,121.5 172,126.6 176,126.1 180,127.4 184,126.3 188,122.0 192,123.9 196,125.2 200,123.8 204,125.3 208,121.8 212,116.6 216,117.3 220,116.7 224,117.7 228,122.2 232,120.7 236,119.0 240,120.8" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/></svg>
+        <div class="li">IMU 200 Hz, 6 ch</div>
+        <div class="li">body-frame velocity label</div>
+        <div class="li">orientation (augmentation only)</div>
+        <div class="out">4 platforms</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--teal)">
+        <div class="h">Sampling</div>
+        <div class="d">mirrors the metric's averaging</div>
+        <div class="sub"><b>1 · platform</b>uniform over 4</div>
+        <div class="sub"><b>2 · trajectory</b>uniform within it</div>
+        <div class="sub"><b>3 · chunk</b>random 16 s window</div>
+        <div class="out">64 chunks / batch</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--amber);color:var(--navy)">
+        <div class="h">Augmentation</div>
+        <div class="d">physically exact, applied to the label too</div>
+        <div class="sub" style="background:rgba(255,255,255,.55);color:#000"><b>Re-mounting</b>random rotation ≤ 15° (drone ≤ 45°)</div>
+        <div class="sub" style="background:rgba(255,255,255,.55);color:#000"><b>Time dilation</b>s ∈ [1/1.3, 1.3]: v→s·v, ω→s·ω</div>
+        <div class="sub" style="background:rgba(255,255,255,.55);color:#000"><b>Sensor errors</b>2 % scale, bias, white noise</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--violet)">
+        <div class="h">Model</div>
+        <div class="d">architecture on the previous slide</div>
+        <div class="sub"><b>Velocity head</b>320 × 3 per chunk</div>
+        <div class="sub"><b>Platform head</b>training only</div>
+        <div class="out">3.9 M params</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--coral)">
+        <div class="h">Loss</div>
+        <div class="loss">L = L<sub>win</sub> + 0.5 L<sub>dense</sub><br>&nbsp;&nbsp;+ 0.2 L<sub>drift</sub> + 0.05 L<sub>plat</sub></div>
+        <div class="li"><b>win:</b> Huber on 1 s velocity (AVE)</div>
+        <div class="li"><b>dense:</b> same at 20 Hz</div>
+        <div class="li"><b>drift:</b> integrated error (ATE<sub>20</sub>)</div>
+        <div class="li"><b>plat:</b> platform cross-entropy</div>
+      </div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
+</section>
+
+<!-- 8 · Inference pipeline -->
+<section class="slide" data-title="Inference pipeline" style="padding-top:70px">
+  <div class="kicker">Inference pipeline</div>
+  <h2 class="title" style="font-size:60px;margin-bottom:34px">Every window is predicted by 8 overlapping chunks</h2>
+  <div class="body" style="justify-content:center;gap:24px;padding-bottom:30px">
+    <div class="flow" style="grid-template-columns:1fr 40px 1.45fr 40px 1fr 40px 1.2fr 40px 1fr">
+      <div class="stage-box" style="background:var(--navy)">
+        <div class="h">Test trajectory</div>
+        <div class="d">whole recording, any length</div>
+        <div class="li">raw IMU only</div>
+        <div class="li">no platform label</div>
+        <div class="li">shorter than 16 s → edge-padded</div>
+        <div class="out">N × 200 × 6</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--blue)">
+        <div class="h">Sliding chunks</div>
+        <div class="d">16 s chunks, stride 2 s</div>
+        <svg class="fig" viewBox="0 0 341 150" aria-hidden="true"><rect x="1" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="12" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="23" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="34" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="45" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="56" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="67" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="78" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="89" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="100" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="111" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="122" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="133" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="144" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="155" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="166" y="0" width="9" height="14" rx="2" fill="#FFC46B"/><rect x="177" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="188" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="199" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="210" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="221" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="232" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="243" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="254" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="265" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="276" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="287" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="298" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="309" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="320" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="331" y="0" width="9" height="14" rx="2" fill="rgba(255,255,255,.35)"/><rect x="1" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="12" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="23" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="34" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="45" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="56" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="67" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="78" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="89" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="100" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="111" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="122" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="133" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="144" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="155" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="166" y="24" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="23" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="34" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="45" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="56" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="67" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="78" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="89" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="100" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="111" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="122" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="133" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="144" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="155" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="166" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="177" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="188" y="39" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="45" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="56" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="67" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="78" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="89" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="100" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="111" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="122" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="133" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="144" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="155" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="166" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="177" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="188" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="199" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="210" y="54" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="67" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="78" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="89" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="100" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="111" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="122" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="133" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="144" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="155" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="166" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="177" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="188" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="199" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="210" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="221" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="232" y="69" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="89" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="100" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="111" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="122" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="133" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="144" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="155" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="166" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="177" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="188" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="199" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="210" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="221" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="232" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="243" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="254" y="84" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="111" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="122" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="133" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="144" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="155" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="166" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="177" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="188" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="199" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="210" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="221" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="232" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="243" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="254" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="265" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="276" y="99" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="133" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="144" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="155" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="166" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="177" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="188" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="199" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="210" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="221" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="232" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="243" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="254" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="265" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="276" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="287" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="298" y="114" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="155" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="166" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="177" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="188" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="199" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="210" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="221" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="232" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="243" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="1.00"/><rect x="254" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.97"/><rect x="265" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.83"/><rect x="276" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.65"/><rect x="287" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.45"/><rect x="298" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.27"/><rect x="309" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.13"/><rect x="320" y="129" width="9" height="11" rx="2" fill="#fff" fill-opacity="0.06"/><rect x="164" y="20" width="13" height="123" rx="3" fill="none" stroke="#FFC46B" stroke-width="2"/></svg>
+        <div class="d" style="font-family:var(--f-mono);font-size:18px">amber = one window, inside 8 chunks</div>
+        <div class="out">16 s × 200 Hz each</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--violet)">
+        <div class="h">Model</div>
+        <div class="d">one forward pass per chunk</div>
+        <div class="sub"><b>Velocity head</b>320 × 3 at 20 Hz</div>
+        <div class="sub"><b>Window mean</b>20 tokens → 1 s</div>
+        <div class="out">16 × 3 per chunk</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--teal)">
+        <div class="h">Overlap average</div>
+        <div class="d">raised-cosine weight + 0.05 floor</div>
+        <svg class="fig" viewBox="0 0 180 84" aria-hidden="true"><line x1="0" y1="70" x2="180" y2="70" stroke="rgba(255,255,255,.5)"/><polyline points="0.0,67.2 2.8,67.1 5.6,66.7 8.4,66.0 11.2,65.1 14.1,64.0 16.9,62.6 19.7,61.0 22.5,59.1 25.3,57.1 28.1,55.0 30.9,52.6 33.8,50.2 36.6,47.6 39.4,45.0 42.2,42.3 45.0,39.6 47.8,36.9 50.6,34.2 53.4,31.6 56.2,29.0 59.1,26.6 61.9,24.3 64.7,22.1 67.5,20.1 70.3,18.3 73.1,16.7 75.9,15.3 78.8,14.1 81.6,13.2 84.4,12.5 87.2,12.1 90.0,12.0 92.8,12.1 95.6,12.5 98.4,13.2 101.2,14.1 104.1,15.3 106.9,16.7 109.7,18.3 112.5,20.1 115.3,22.1 118.1,24.3 120.9,26.6 123.8,29.0 126.6,31.6 129.4,34.2 132.2,36.9 135.0,39.6 137.8,42.3 140.6,45.0 143.4,47.6 146.2,50.2 149.1,52.6 151.9,55.0 154.7,57.1 157.5,59.1 160.3,61.0 163.1,62.6 165.9,64.0 168.8,65.1 171.6,66.0 174.4,66.7 177.2,67.1 180.0,67.2" fill="none" stroke="#FFC46B" stroke-width="3"/><text x="0" y="84" class="fl">edge</text><text x="90" y="84" class="fl" text-anchor="middle">centre</text><text x="180" y="84" class="fl" text-anchor="end">edge</text></svg>
+        <div class="d">a window counts most where it sits near a chunk's centre, with context on both sides</div>
+        <div class="out">weighted mean</div>
+      </div>
+      <div class="arw">→</div>
+      <div class="stage-box" style="background:var(--coral);align-self:center;min-height:0">
+        <div class="h">Submission</div>
+        <div class="d">one velocity per 1 s window</div>
+        <div class="sub"><b>(v<sub>x</sub>, v<sub>y</sub>, v<sub>z</sub>)</b>body frame, m/s</div>
+      </div>
+    </div>
+  </div>
+  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
 </section>
 
 <!-- 7 · Ablation -->
-<section class="slide" data-title="What moved the score" data-end="4:25">
+<section class="slide" data-title="What moved the score">
   <div class="kicker">What moved the score · val</div>
   <h2 class="title">Context did most of the work</h2>
   <div class="body">
     <div class="bars abl">
-      <div class="bar-row"><span class="name">Per-window ResNet (starter)</span><div><div class="bar g" style="width:94%">≈ 0.300</div></div></div>
+      <div class="bar-row"><span class="name">Per-window baseline</span><div><div class="bar g" style="width:94%">≈ 0.300</div></div></div>
       <div class="bar-row"><span class="name"><b>+ 16 s context</b></span><div><div class="bar b" style="width:70%">0.225 &nbsp;−0.075</div></div></div>
       <div class="bar-row"><span class="name">+ drone augmentation</span><div><div class="bar n" style="width:69.5%">0.223</div></div></div>
       <div class="bar-row"><span class="name">+ 60 epochs instead of 30</span><div><div class="bar n" style="width:63.4%">0.203</div></div></div>
@@ -307,11 +541,10 @@ sub{font-size:.65em;line-height:0}
     <p class="say"><b>No gain:</b> 32 s context, rotation TTA, smoothing, denser overlap.</p>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">Here's our ablation on the held-out validation split, using the organisers' exact scorer. A per-window ResNet, like the starter kernel, is around 0.30. Adding 16-second context took it to 0.225 in one step, which is most of our total gain. After that the steps were small: drone augmentation, longer training and uniform sampling brought it to 0.198. Longer context, test-time augmentation and smoothing did not help.</aside>
 </section>
 
 <!-- 8 · Per platform -->
-<section class="slide" data-title="Results by platform" data-end="5:00">
+<section class="slide" data-title="Results by platform">
   <div class="kicker">Results by platform · full test</div>
   <h2 class="title">The drone is 7 % of the test windows but 64 % of our score</h2>
   <div class="body">
@@ -335,26 +568,10 @@ sub{font-size:.65em;line-height:0}
     </div>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">The official per-platform numbers. Car, human and quadruped all sit at five to seven centimetres per second. The drone is at 0.52. Drone clips are short, so the drone is only 7 percent of the test windows, but because every platform counts equally it makes up 64 percent of our score. So the question is: what is special about the drone data?</aside>
-</section>
-
-<!-- 9 · Drone data -->
-<section class="slide" data-title="Drone data findings" data-end="5:50">
-  <div class="kicker">Why the drone is hard</div>
-  <h2 class="title">The racing-drone error sits in the labels, not the model</h2>
-  <div class="body">
-    <div class="row r2">
-      <div class="blk t"><div class="tag">Drone-B · 3.4 h</div><div class="h">Gyro z axis is inverted</div><div class="p">Relative to its own ground-truth frame (R² = 0.97). The network copes, but what it learns doesn't transfer.</div><div class="tag" style="margin-top:auto">val error per flight</div><div class="v" style="font-size:72px">0.16–0.43 <small>m/s</small></div></div>
-      <div class="blk c"><div class="tag">Drone-A racing · 30 min</div><div class="h">Each flight is recorded twice, and they disagree</div><div class="p">Two IMUs per flight. After best alignment, their velocity labels still differ by 0.15–0.9 m/s.</div><div class="tag" style="margin-top:auto">val error per flight</div><div class="v" style="font-size:72px">0.43–0.78 <small>m/s</small></div></div>
-    </div>
-    <p class="say">More capacity, epochs or augmentation <b>never moved the racing-drone error</b>.</p>
-  </div>
-  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">The drone data comes from two sources. Drone-B has its gyro z axis inverted relative to its own ground truth. The network copes, because that source is easy to recognise, and its error per flight sits between 0.16 and 0.43 metres per second. Drone-A, the racing drone, is recorded twice per flight by two IMUs, and even after the best alignment their velocity labels disagree by up to 0.9 metres per second. Its error stayed high no matter what we changed. All of this is measured on train and val only.</aside>
 </section>
 
 <!-- 10 · Evaluation -->
-<section class="slide" data-title="Evaluation" data-end="6:30">
+<section class="slide" data-title="Evaluation">
   <div class="kicker">Evaluation</div>
   <h2 class="title">Trust local validation, not the public board</h2>
   <div class="body">
@@ -373,64 +590,26 @@ sub{font-size:.65em;line-height:0}
     </div>
   </div>
   <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">A practical lesson. Training the identical recipe on two GPUs moved the public score by 0.018, more than most of our real improvements. The public split is dominated by a few short racing-drone clips. So we decided everything on validation with the organisers' exact scorer. Val tracked the full test well: 0.198 against 0.219. The public split gave 0.286 and the final private board 0.161; each board uses about half of the test data.</aside>
-</section>
-
-<!-- 11 · Lessons -->
-<section class="slide blue" data-title="Takeaways" data-end="7:10">
-  <div class="kicker">Takeaways</div>
-  <h2 class="title">One universal inertial model works. The bottleneck is the data.</h2>
-  <div class="body">
-    <div class="row r3">
-      <div class="blk w"><div class="h">Context wins</div><div class="p">Reading 16 s at once gave most of the gain. No negative transfer between bodies.</div></div>
-      <div class="blk w"><div class="h">Next for us</div><div class="p">Estimate bias, gravity and time offset explicitly. Build a causal, real-time version.</div></div>
-      <div class="blk w"><div class="h">For the benchmark</div><div class="p">Document frame conventions and sync per source. Declare the duplicate racing recordings.</div></div>
-    </div>
-  </div>
-  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">To sum up. A single universal inertial model works: five to seven centimetres per second on three very different bodies, with no platform label and no negative transfer. Most of that came from reading whole trajectories. Next, we'd estimate bias, gravity and time offset explicitly and build a causal version for real-time use. For the benchmark, we'd suggest documenting frame conventions and synchronisation per source, and declaring the duplicate racing recordings.</aside>
 </section>
 
 <!-- 12 · Thanks -->
-<section class="slide dark" data-title="Thank you" data-end="7:35">
+<section class="slide dark" data-title="Thank you">
   <div class="kicker">Thank you</div>
   <h2 class="hero" style="font-size:180px;margin-top:20px">Questions?</h2>
   <div class="links" style="margin-top:auto;padding-bottom:80px">
     <div class="link-row"><span class="k">Weights</span><a href="https://huggingface.co/mdhamidhosen/tartanimu-unified-hosen42" target="_blank" rel="noopener">huggingface.co/mdhamidhosen/tartanimu-unified-hosen42</a></div>
     <div class="link-row"><span class="k">Code</span><a href="https://github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry" target="_blank" rel="noopener">github.com/hamidhosen42/TartanIMU-Challenge-Multi-Platform-Inertial-Odometry</a></div>
-    <div class="link-row"><span class="k">Writeup</span><a href="https://doi.org/10.34740/KAGGLE/W/114686" target="_blank" rel="noopener">doi.org/10.34740/KAGGLE/W/114686</a></div>
+    <div class="link-row"><span class="k">Writeup</span><a href="https://www.kaggle.com/competitions/tartan-imu-challenge-iros2026/writeups/10th-place-one-model-four-bodies-trajectory-co" target="_blank" rel="noopener">kaggle.com/competitions/tartan-imu-challenge-iros2026 → writeups</a></div>
   </div>
-  <aside class="notes">That's our entry. The weights are on Hugging Face, the code and the technical report are on GitHub, and the writeup is on Kaggle. Thank you to the CMU AirLab team for the dataset, the exact scorer and the scoring service. Happy to take questions.</aside>
-</section>
-
-<!-- Backup -->
-<section class="slide" data-title="Backup: likely questions">
-  <div class="kicker">Backup · likely questions</div>
-  <h2 class="title" style="margin-bottom:40px">Questions we expect</h2>
-  <div class="body">
-    <div class="qa">
-      <div class="blk s"><div class="h">vs RoNIN, TLIO, AirIO?</div><div class="p">They regress from 1–2 s windows or fuse in an EKF. We predict a whole 16 s span and average overlaps.</div></div>
-      <div class="blk s"><div class="h">vs Tartan IMU baseline?</div><div class="p">It uses per-platform heads. The challenge forbids routing, so we have none.</div></div>
-      <div class="blk s"><div class="h">Real time?</div><div class="p">No. It is offline and uses future samples. A causal version needs a different design.</div></div>
-      <div class="blk s"><div class="h">How reliable?</div><div class="p">Seed 0, single runs. Same-recipe reruns moved the public score by up to 0.018, the private by 0.005.</div></div>
-      <div class="blk s"><div class="h">Test labels?</div><div class="p">Never used. Drone findings come from train and val files only.</div></div>
-      <div class="blk s"><div class="h">Why not ensemble?</div><div class="p">Ranked entries had to be one weight set. Ensemble: 0.2171 on val, never ranked.</div></div>
-    </div>
-  </div>
-  <footer class="foot"><span>Hack2Publish · TartanIMU 2026</span><span class="num"></span></footer>
-  <aside class="notes">Backup slide. Only open it if a question needs it.</aside>
 </section>
 
 </main>
 
-<div class="hint" id="hint">→ / Space: next · ← : back · F: fullscreen · P: presenter notes · N: notes here</div>
-<div class="notes-panel" id="notesPanel" hidden><div class="label">Speaker notes</div><div id="notesText"></div></div>
+<div class="hint" id="hint">→ / Space: next · ← : back · F: fullscreen</div>
 <nav class="hud" id="hud" aria-label="Slide controls">
   <button type="button" id="bPrev" aria-label="Previous slide">←</button>
-  <span class="count" id="count">1 / 13</span>
+  <span class="count" id="count">1 / 12</span>
   <button type="button" id="bNext" aria-label="Next slide">→</button>
-  <button type="button" id="bNotes" title="Show notes on this screen (N)">Notes</button>
-  <button type="button" id="bPres" title="Open presenter window (P)">Presenter</button>
   <button type="button" id="bFull" title="Fullscreen (F)">Full screen</button>
 </nav>
 
@@ -448,69 +627,18 @@ function fit(){
   document.documentElement.style.setProperty('--s', s);
 }
 const count = document.getElementById('count');
-const notesPanel = document.getElementById('notesPanel'), notesText = document.getElementById('notesText');
-function notesOf(i){ const a = slides[i] && slides[i].querySelector('.notes'); return a ? a.textContent.trim() : ''; }
 function go(i){
   cur = Math.max(0, Math.min(n - 1, i));
   slides.forEach((sl, j) => { sl.classList.toggle('active', j === cur); sl.setAttribute('aria-hidden', j === cur ? 'false' : 'true'); });
   count.textContent = (cur + 1) + ' / ' + n;
-  notesText.textContent = notesOf(cur);
   try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) {}
-  syncPresenter();
 }
 function next(){ go(cur + 1); } function prev(){ go(cur - 1); }
 function toggleFull(){
   if (document.fullscreenElement) { document.exitFullscreen && document.exitFullscreen().catch(() => {}); }
   else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(() => {}); }
 }
-function toggleNotes(){ notesPanel.hidden = !notesPanel.hidden; }
 
-/* presenter window: notes, next slide, timer */
-let pv = null, t0 = null;
-function openPresenter(){
-  if (pv && !pv.closed) { pv.focus(); return; }
-  pv = window.open('', 'deck-presenter', 'width=980,height=720');
-  if (!pv) return;
-  t0 = Date.now();
-  pv.document.open();
-  pv.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Presenter · One Model, Four Bodies</title>
-<style>body{margin:0;background:#0E131C;color:#E6EAF0;font:18px/1.55 "IBM Plex Sans",system-ui,sans-serif;padding:28px 34px}
-.top{display:flex;justify-content:space-between;align-items:baseline;font-family:ui-monospace,Menlo,monospace;color:#9ec5f4;font-size:15px;letter-spacing:.06em}
-#timer{font-size:34px;color:#fff;font-variant-numeric:tabular-nums}
-h1{font-size:30px;margin:14px 0 18px;font-weight:600}
-#notes{font-size:24px;line-height:1.6;max-width:46em;color:#F2F4F8}
-.next{margin-top:28px;padding-top:16px;border-top:1px solid #2A3344;color:#8A93A3;font-size:16px}
-button{font:inherit;font-size:15px;background:#1E2736;color:#E6EAF0;border:1px solid #333D50;border-radius:8px;padding:8px 14px;cursor:pointer;margin-right:8px}
-</style></head><body>
-<div class="top"><span id="pos"></span><span id="tgt"></span><span id="timer">00:00</span></div>
-<h1 id="ttl"></h1><div id="notes"></div>
-<div class="next">Next: <span id="nxt"></span></div>
-<p style="margin-top:22px"><button id="p">← Back</button><button id="n">Next →</button><button id="r">Reset timer</button></p>
-<script>
-const send=k=>window.opener&&window.opener.postMessage({deckKey:k},'*');
-document.addEventListener('keydown',e=>{send(e.key);if([' ','ArrowDown','ArrowUp','PageDown','PageUp'].includes(e.key))e.preventDefault();});
-document.getElementById('p').onclick=()=>send('ArrowLeft');document.getElementById('n').onclick=()=>send('ArrowRight');document.getElementById('r').onclick=()=>send('__reset');
-<\/script></body></html>`);
-  pv.document.close();
-  syncPresenter();
-}
-function syncPresenter(){
-  if (!pv || pv.closed) return;
-  const d = pv.document; if (!d.getElementById('ttl')) return;
-  d.getElementById('pos').textContent = 'SLIDE ' + (cur + 1) + ' / ' + n;
-  d.getElementById('ttl').textContent = slides[cur].dataset.title || '';
-  d.getElementById('tgt').textContent = slides[cur].dataset.end ? 'FINISH SLIDE BY ' + slides[cur].dataset.end + ' · HARD STOP 8:00' : '';
-  d.getElementById('notes').textContent = notesOf(cur);
-  d.getElementById('nxt').textContent = cur + 1 < n ? (slides[cur + 1].dataset.title || '') : 'end of deck';
-}
-setInterval(() => {
-  if (!pv || pv.closed || !t0) return;
-  const el = pv.document.getElementById('timer'); if (!el) return;
-  const sec = Math.floor((Date.now() - t0) / 1000);
-  el.textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
-  const e = (slides[cur].dataset.end || '').split(':'), end = e.length === 2 ? +e[0] * 60 + +e[1] : Infinity;
-  el.style.color = sec >= 480 ? '#FF6B5B' : sec > end + 5 ? '#F0A22E' : '#fff';
-}, 500);
 
 function handleKey(k){
   if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) next();
@@ -518,9 +646,6 @@ function handleKey(k){
   else if (k === 'Home') go(0);
   else if (k === 'End') go(n - 1);
   else if (k === 'f' || k === 'F') toggleFull();
-  else if (k === 'n' || k === 'N') toggleNotes();
-  else if (k === 'p' || k === 'P') openPresenter();
-  else if (k === '__reset') t0 = Date.now();
   else return false;
   return true;
 }
@@ -528,11 +653,8 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (handleKey(e.key)) e.preventDefault();
 });
-window.addEventListener('message', e => { if (e.data && e.data.deckKey) handleKey(e.data.deckKey); });
 document.getElementById('bPrev').onclick = prev;
 document.getElementById('bNext').onclick = next;
-document.getElementById('bNotes').onclick = toggleNotes;
-document.getElementById('bPres').onclick = openPresenter;
 document.getElementById('bFull').onclick = toggleFull;
 
 /* touch swipe */

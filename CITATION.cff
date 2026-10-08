@@ -7,11 +7,11 @@ authors:
     given-names: Md. Hamid
     email: mdhamidhosen4@gmail.com
   - family-names: Sami
-    given-names: Esfer
+    given-names: Md Esfer Abdus
+  - family-names: Shanto
+    given-names: Md. Foysal Emon
   - family-names: Ashraf
     given-names: Kahakashan
-  - family-names: Shanto
-    given-names: Foysal Emon
 version: "1.0"
 date-released: "2026-09-21"
 license: Apache-2.0
@@ -25,11 +25,11 @@ references:
       - family-names: Hosen
         given-names: Md. Hamid
       - family-names: Sami
-        given-names: Esfer
+        given-names: Md Esfer Abdus
+      - family-names: Shanto
+        given-names: Md. Foysal Emon
       - family-names: Ashraf
         given-names: Kahakashan
-      - family-names: Shanto
-        given-names: Foysal Emon
     publisher:
       name: Kaggle
     year: 2026
