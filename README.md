@@ -97,7 +97,7 @@ Public-LB noise is ±0.01–0.02 for this family (identical recipes on different
 
 ## Authors
 
-Team **Hack2Publish**: Md. Hamid Hosen (lead, mdhamidhosen4@gmail.com), Md Esfer Abdus Sami, Md. Foysal Emon Shanto, Kahakashan Ashraf.
+Team **Hack2Publish**: Md. Hamid Hosen (contact: mdhamidhosen4@gmail.com), Md Esfer Abdus Sami, Md. Foysal Emon Shanto, Kahakashan Ashraf.
 
 ## License
 
